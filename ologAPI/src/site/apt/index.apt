@@ -1,0 +1,20 @@
+   ----
+   Overview
+   ----
+   Kunal Shroff
+   ----
+
+ChannelFinderAPI Library Overview
+
+  ChannelFinder is a directory server, implemented as a REST style web service.
+Its intended use is within control systems, namely the EPICS Control system, for which it has been written.
+
+* Motivation and Objectives
+  
+  The ChannelFinderAPI library is a pure java library to provide simple mechanism to access the channelfinder
+directory service.
+  
+* Examples
+
+ The unit test serve as an examples resource on how to create, update, add, delete channels, properties and tags.
+

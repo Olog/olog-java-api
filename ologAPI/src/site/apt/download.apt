@@ -1,0 +1,19 @@
+   ----
+   Download
+   ----
+   Ralph Lange
+   ----
+
+Download
+
+  Released versions:
+  
+*----------------+----------------------+
+| Version 1.1.0  |  {{{http://downloads.sourceforge.net/channelfinder/ChannelFinderAPI/ChannelFinderAPI-1.1.0-rc1.jar}Download v1.1.0-rc1}} |                
+*----------------+----------------------+
+| Version 1.1.0  |  {{{http://downloads.sourceforge.net/channelfinder/ChannelFinderAPI/ChannelFinderAPI-1.0.0-rc1.jar}Download v1.0.0-rc1}} |
+*----------------+----------------------+
+
+  Latest unreleased version:
+
+  {{{https://irmis-dev.bnl.gov/hudson/job/ChannelFinderAPIc%20-%20Build/lastSuccessfulBuild/artifact/target/}Latest development build}}

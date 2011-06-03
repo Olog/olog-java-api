@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project name="Olog">
+    <bannerLeft>
+        <name>OlogAPI</name>
+        <!--<src>http://maven.apache.org/images/apache-maven-project.png</src>-->
+        <href>http://bitbucket.org/berryma4/olog</href>
+    </bannerLeft>
+
+    <!--<bannerRight>
+    <src>http://maven.apache.org/images/maven-small.gif</src>
+</bannerRight>-->
+
+    <body>
+        <links>
+            <item name="EPICS" href="http://www.aps.anl.gov/epics/"/>
+        </links>
+        <menu name="OlogAPI">
+            <item name="Overview" href="index.html"/>
+            <item name="Download" href="download.html"/>
+        </menu>
+        <menu ref="reports"/>
+    </body>
+</project>
+
