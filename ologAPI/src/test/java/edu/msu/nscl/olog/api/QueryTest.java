@@ -1,8 +1,10 @@
 package edu.msu.nscl.olog.api;
 
-import static edu.msu.nscl.olog.api.LogBuilder.log;
-import static edu.msu.nscl.olog.api.LogbookBuilder.logbook;
-import static edu.msu.nscl.olog.api.TagBuilder.tag;
+import static edu.msu.nscl.olog.api.LogBuilder.*;
+import static edu.msu.nscl.olog.api.LogUtil.*;
+import static edu.msu.nscl.olog.api.LogbookBuilder.*;
+import static edu.msu.nscl.olog.api.TagBuilder.*;
+import static edu.msu.nscl.olog.api.PropertyBuilder.*;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -24,8 +26,7 @@ public class QueryTest {
         private static Collection<Log> returnLogs = new HashSet<Log>();
 	private static int initialLogCount;
 
-	private static OlogClient client = OlogClient
-			.getInstance();
+	private static OlogClient client = OlogClient.getInstance();
 
 	// Tags
 	static TagBuilder tagA = tag("Taga", "me");
@@ -72,7 +73,7 @@ public class QueryTest {
 	@Test
 	public void queryAllLogs() {
 		Map<String, String> map = new Hashtable<String, String>();
-		map.put("~subject", "*");
+		map.put("search", "*");
 		Collection<Log> logs = client.findLogs(map);
 		assertTrue(client.getAllLogs().size() == logs.size());
 	}
@@ -83,7 +84,7 @@ public class QueryTest {
 	@Test
 	public void queryLogs() {
 		Map<String, String> map = new Hashtable<String, String>();
-		map.put("~subject", "pvk:*");
+		map.put("search", "pvk:*");
 		Collection<Log> logs = client.findLogs(map);
 		assertTrue(logs.size() == 3);
 	}
@@ -95,18 +96,15 @@ public class QueryTest {
 	@Test
 	public void queryLogsbyLogbook() {
 		Map<String, String> map = new Hashtable<String, String>();
-		map.put("logbooks", "*k");
+		map.put("logbook", "*k");
 		Collection<Log> logs = client.findLogs(map);
 		assertTrue(logs.size() == 2);
 
-		map.put("logbooks", "*k");
-		map.put("logbooks", "*k2");
+		map.put("logbook", "*k");
+		map.put("logbook", "*k2");
 		logs = client.findLogs(map);
 		assertTrue(logs.size() == 1);
 
-		map.clear();
-		map.put("levels", "Info");
-		logs = client.findLogs(map);
 	}
 
 	/**
@@ -116,8 +114,8 @@ public class QueryTest {
 	@Test
 	public void testMultipleParameters() {
 		MultivaluedMapImpl map = new MultivaluedMapImpl();
-		map.add("~logbook", "1");
-		map.add("~logbook", "2");
+		map.add("logbook", "1");
+		map.add("logbook", "2");
 		Collection<Log> logs = client.findLogs(map);
 		assertTrue(logs.size() == 3);
 	}
@@ -129,17 +127,17 @@ public class QueryTest {
 	public void testQueryForSpecialChar() {
 		MultivaluedMapImpl map = new MultivaluedMapImpl();
 		// logbook values are special chars
-		map.add("lt.name", "*");
+		map.add("search", "*");
 		assertTrue(client.findLogs(map).size() == 4);
 		map.clear();
-		map.add("lt.name", "\\*");
+		map.add("search", "\\*");
 		assertTrue(client.findLogs(map).size() == 1);
 		// tag names are special chars
 		map.clear();
-		map.add("~tag", "Tag*");
+		map.add("tag", "Tag*");
 		assertTrue(client.findLogs(map).size() == 4);
 		map.clear();
-		map.add("~tag", "Tag\\*");
+		map.add("tag", "Tag\\*");
 		assertTrue(client.findLogs(map).size() == 1);
 	}
 

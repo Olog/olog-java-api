@@ -32,7 +32,7 @@ public class APITest {
 
 	@BeforeClass
 	public static void beforeTests() {
-		client = OlogClient.getInstance("berryman","mensch27!");
+		client = OlogClient.getInstance();
 		logCount = client.getAllLogs().size();
 	}
 
