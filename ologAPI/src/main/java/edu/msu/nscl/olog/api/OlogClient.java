@@ -3,6 +3,7 @@ package edu.msu.nscl.olog.api;
 import static edu.msu.nscl.olog.api.LogBuilder.*;
 import static edu.msu.nscl.olog.api.PropertyBuilder.*;
 
+import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
@@ -24,6 +25,7 @@ import java.util.logging.Logger;
 import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
+import javax.imageio.ImageIO;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.ws.rs.core.MediaType;
@@ -41,7 +43,6 @@ import com.sun.jersey.client.urlconnection.HTTPSProperties;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 import com.googlecode.sardine.*;
-import com.googlecode.sardine.util.SardineException;
 import java.util.List;
 
 /**
@@ -60,7 +61,7 @@ import java.util.List;
 public class OlogClient {
 	private static OlogClient instance;
 	private WebResource service;
-        private Sardine sardine;
+    private Sardine sardine;
 	private static Preferences preferences;
 	private static Properties defaultProperties;
 	private static Properties userCFProperties;
@@ -199,13 +200,8 @@ public class OlogClient {
 			client.addFilter(new LoggingFilter());
 		}
 		service = client.resource(getBaseURI());
-
-                try {
-                        sardine = SardineFactory.begin(getPreferenceValue("username",
-				"username"), getPreferenceValue("password", "password"));
-                } catch (SardineException e) {
-                        e.printStackTrace();
-                }
+                sardine = SardineFactory.begin(getPreferenceValue("username","username"),
+        		getPreferenceValue("password", "password"));
 	}
        /**
 	 * Create an instance of OlogClient
@@ -250,13 +246,7 @@ public class OlogClient {
 			client.addFilter(new LoggingFilter());
 		}
 		service = client.resource(getBaseURI());
-
-                try {
-                        sardine = SardineFactory.begin(getPreferenceValue("username",
-				"username"), getPreferenceValue("password", "password"));
-                } catch (SardineException e) {
-                        e.printStackTrace();
-                }
+                sardine = SardineFactory.begin(username, password);
 	}
 
 	/**
@@ -355,15 +345,15 @@ public class OlogClient {
                 Collection<String> allFiles = new HashSet<String>();
 		try {
 			URI remote = UriBuilder.fromUri(getJCRBaseURI()).path("{arg1}/").build(logId);
-                        List<DavResource> resources = sardine.getResources(remote.toASCIIString());
+                        List<DavResource> resources = sardine.list(remote.toASCIIString());
                         for (DavResource file : resources) {
                             if (!file.isDirectory())
-                                allFiles.add(file.getAbsoluteUrl());
+                                allFiles.add(file.getHref().toASCIIString());
                         }
                         return allFiles;
 		} catch (UniformInterfaceException e) {
 			throw new OlogException(e);
-                } catch (SardineException e) {
+                } catch (IOException e) {
 			throw new OlogException(e);
 		}
 	}
@@ -563,26 +553,35 @@ public class OlogClient {
         public void add(File local, Long logId) {
                 URI remote = UriBuilder.fromUri(getJCRBaseURI()).path("{arg1}").path("{arg2}").build(logId,local.getName());
                 URI remoteDir = UriBuilder.fromUri(getJCRBaseURI()).path("{arg1}").build(logId);
+                final int ndx = local.getName().lastIndexOf(".");
+        		final String extension = local.getName().substring(ndx + 1);
                 try {
-                    sardine.getResources(remoteDir.toASCIIString());
-                } catch(SardineException e){
-                    try {
-                        sardine.createDirectory(remoteDir.toASCIIString());
-                    } catch (SardineException ex) {
+                    
+                        if(!sardine.exists(remoteDir.toASCIIString()))
+                            sardine.createDirectory(remoteDir.toASCIIString());
+                    } catch (IOException ex) {
                             throw new OlogException(ex);
                     }
-                }
                 try {
                         FileInputStream fis = new FileInputStream(local);                      
                         sardine.put(remote.toASCIIString(), fis);
+                		// If image add thumbnail
+                		if ((extension.equals("jpeg") ||
+                				extension.equals("jpg") ||
+                				extension.equals("gif") ||
+                				extension.equals("png") )){
+                			//BufferedImage img = new BufferedImage(80, 80, BufferedImage.TYPE_INT_RGB);
+                			//img.createGraphics().drawImage(ImageIO.read(local).getScaledInstance(100, 100, BufferedImage.SCALE_SMOOTH),0,0,null);
+                			//ImageIO.write(img, "jpg", new File(local.getName()));
+                			//FileInputStream fis2 = new FileInputStream(new File(local.getName()));                      
+                			//sardine.put(remote.toASCIIString(), fis2);
+                		}
                         try {
                             fis.close();
                         } catch (IOException e) {
                             throw new OlogException(e);
                         }
-                } catch (SardineException e) {
-                        throw new OlogException(e);
-                } catch (FileNotFoundException e){
+                } catch (IOException e) {
                         throw new OlogException(e);
                 }
         }
@@ -597,7 +596,7 @@ public class OlogClient {
 		try {
 			Collection<Log> logs = new HashSet<Log>();
 			XmlLogs xmlLogs = service
-					.path("logs").queryParam("~search", pattern).accept( //$NON-NLS-1$ //$NON-NLS-2$
+					.path("logs").queryParam("search", pattern).accept( //$NON-NLS-1$ //$NON-NLS-2$
 							MediaType.APPLICATION_XML).accept(
 							MediaType.APPLICATION_JSON).get(XmlLogs.class);
 			for (XmlLog xmllog : xmlLogs.getLogs()) {
@@ -619,7 +618,7 @@ public class OlogClient {
 		try {
 			Collection<Log> logs = new HashSet<Log>();
 			XmlLogs xmlLogs = service
-					.path("logs").queryParam("~tag", pattern).accept( //$NON-NLS-1$ //$NON-NLS-2$
+					.path("logs").queryParam("tag", pattern).accept( //$NON-NLS-1$ //$NON-NLS-2$
 							MediaType.APPLICATION_XML).accept(
 							MediaType.APPLICATION_JSON).get(XmlLogs.class);
 			for (XmlLog xmllog : xmlLogs.getLogs()) {
@@ -647,7 +646,7 @@ public class OlogClient {
 		try {
 			Collection<Log> logs = new HashSet<Log>();
 			XmlLogs xmlLogs = service
-					.path("logs").queryParam("~logbook", logbook).accept( //$NON-NLS-1$ //$NON-NLS-2$
+					.path("logs").queryParam("logbook", logbook).accept( //$NON-NLS-1$ //$NON-NLS-2$
 							MediaType.APPLICATION_XML).accept(
 							MediaType.APPLICATION_JSON).get(XmlLogs.class);
 			for (XmlLog xmllog : xmlLogs.getLogs()) {

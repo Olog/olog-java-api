@@ -11,7 +11,6 @@ import java.io.FileNotFoundException;
 import java.io.Reader;
 import java.io.StringReader;
 import javax.swing.text.html.parser.ParserDelegator;
-import com.googlecode.sardine.util.SardineException;
 
 /**
  *
@@ -81,13 +80,6 @@ public class OlogException extends RuntimeException {
 		this.setStatus(null);
         }
 
-        /**
-         *
-         */
-        public OlogException(SardineException ex){
-                super(ex.getMessage(), ex.getCause());
-		this.setStatus(Status.fromStatusCode(ex.getStatusCode()));
-        }
 	/**
 	 * @param status the status to set
 	 */

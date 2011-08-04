@@ -22,6 +22,7 @@ import org.junit.rules.ExpectedException;
 
 import com.sun.jersey.api.client.ClientResponse.Status;
 import java.io.File;
+import java.io.FileWriter;
 
 public class APITest {
 	private static OlogClient client;
@@ -165,12 +166,13 @@ public class APITest {
 		client.add(tag("newTag"));
 		try {
 			returnLogOld = client.add(oldLog);
+                        
 			assertTrue(client.findLogsByTag("oldTag").contains(
 					returnLogOld));
                         XmlLog xmlLog = newLog.toXml();
                         xmlLog.setId(returnLogOld.getId());
                         newLog = log(new Log(xmlLog));
-			client.add(newLog);
+			client.add(newLog);                        
                         returnLogNew = client.getLog(newLog.toXml().getId());
 			assertTrue(!client.findLogsByTag("oldTag").contains(
 					returnLogNew));
@@ -497,11 +499,15 @@ public class APITest {
                 File f = null;
                 try {
                     f = new File("file.txt");
-                    if(!f.exists())
-                        f.createNewFile();
+                    if(!f.exists()){
+                        FileWriter fwrite = new FileWriter(f);
+                        fwrite.write("This is test file");
+                        fwrite.flush();
+                        fwrite.close();
+                    }
                     returnLog = client.add(log("attachment test").description("TestDetail").level("Info")
                                 .in(logbook("TestLogbook").owner(owner)));
-                    
+
                     client.add(f,returnLog.getId());
                     assertTrue(client.getAttachments(returnLog.getId()).size()==1);
                 } finally {
@@ -515,7 +521,25 @@ public class APITest {
                     }
                 }
         }
+        @Test
+        public void attachImageFileToLogId() throws IOException {
+                String owner = "me";
+                Log returnLog = null;
+                File f = null;
+                try {
+                    f = new File("the_homercar.jpg");
+                    returnLog = client.add(log("attachment test").description("TestDetail").level("Info")
+                                .in(logbook("TestLogbook").owner(owner)));
 
+                    client.add(f,returnLog.getId());
+                    assertTrue(client.getAttachments(returnLog.getId()).size()==1);
+                } finally {
+                    if(returnLog!=null){
+                            client.remove(returnLog.getId());
+//                            client.remove("the_homercar.jpg",returnLog.getId());
+                    }
+                }
+        }
 	/**
 	 * Add a Property to a single log
 	 */
