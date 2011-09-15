@@ -62,106 +62,15 @@ public class OlogClient {
 	private static OlogClient instance;
 	private WebResource service;
     private Sardine sardine;
-	private static Preferences preferences;
-	private static Properties defaultProperties;
-	private static Properties userCFProperties;
-	private static Properties userHomeCFProperties;
-	private static Properties systemCFProperties;
-
-	/**
-	 * check java preferences for the requested key - then checks the various
-	 * default logbooks files.
-	 * 
-	 * @param key
-	 * @param defaultValue
-	 * @return
-	 */
-	private static String getPreferenceValue(String key, String defaultValue) {
-		return preferences.get(key, getDefaultValue(key, defaultValue));
-	}
-
-	/**
-	 * cycles through the default logbooks files and return the value for the
-	 * key from the highest priority file
-	 * 
-	 * @param key
-	 * @param defaultValue
-	 * @return
-	 */
-	private static String getDefaultValue(String key, String defaultValue) {
-		if (userCFProperties.containsKey(key))
-			return userCFProperties.getProperty(key);
-		else if (userHomeCFProperties.containsKey(key))
-			return userHomeCFProperties.getProperty(key);
-		else if (systemCFProperties.containsKey(key))
-			return systemCFProperties.getProperty(key);
-		else if (defaultProperties.containsKey(key))
-			return defaultProperties.getProperty(key);
-		else
-			return defaultValue;
-	}
-
-	private void init() {
-		System.out.println("Initializing olog client.");
-		// log.info("Initializing olog client.");
-		preferences = Preferences.userNodeForPackage(OlogClient.class);
-
-		try {
-			File userCFPropertiesFile = new File(System.getProperty(
-					"olog.properties", ""));
-			File userHomeCFPropertiesFile = new File(System
-					.getProperty("user.home")
-					+ "/olog.properties");
-			File systemCFPropertiesFile = null;
-			if (System.getProperty("os.name").startsWith("Windows")) {
-				systemCFPropertiesFile = new File("/olog.properties");
-			} else if (System.getProperty("os.name").startsWith("Linux")) {
-				systemCFPropertiesFile = new File(
-						"/etc/olog.properties");
-			} else {
-				systemCFPropertiesFile = new File(
-						"/etc/olog.properties");
-			}
-
-			defaultProperties = new Properties();
-			try {
-				defaultProperties.load(this.getClass().getResourceAsStream(
-						"/config/olog.properties"));
-			} catch (Exception e) {
-				// The jar has been modified and the default packaged properties
-				// file has been moved
-				defaultProperties = null;
-			}
-
-			// Not using to new Properties(default Properties) constructor to
-			// make the hierarchy clear.
-			// TODO replace using constructor with default.
-			systemCFProperties = new Properties(defaultProperties);
-			if (systemCFPropertiesFile.exists()) {
-				systemCFProperties.load(new FileInputStream(
-						systemCFPropertiesFile));
-			}
-			userHomeCFProperties = new Properties(systemCFProperties);
-			if (userHomeCFPropertiesFile.exists()) {
-				userHomeCFProperties.load(new FileInputStream(
-						userHomeCFPropertiesFile));
-			}
-			userCFProperties = new Properties(userHomeCFProperties);
-			if (userCFPropertiesFile.exists()) {
-				userCFProperties
-						.load(new FileInputStream(userCFPropertiesFile));
-			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
+	private OlogProperties properties;
+    
 
 	/**
 	 * Create an instance of OlogClient
 	 */
 	private OlogClient() {
-		init();
+		
+		properties = new OlogProperties();
 
 		// Authentication and Authorization configuration
 		TrustManager mytm[] = null;
@@ -180,7 +89,7 @@ public class OlogClient {
 		}
 
 		try {
-			ctx = SSLContext.getInstance(getPreferenceValue("protocol", "SSL")); //$NON-NLS-1$
+			ctx = SSLContext.getInstance(properties.getPreferenceValue("protocol", "SSL")); //$NON-NLS-1$
 			ctx.init(null, mytm, null);
 		} catch (NoSuchAlgorithmException e) {
 			e.printStackTrace();
@@ -192,22 +101,23 @@ public class OlogClient {
 		config.getProperties().put(HTTPSProperties.PROPERTY_HTTPS_PROPERTIES,
 				new HTTPSProperties(null, ctx));
 		Client client = Client.create(config);
-                client.addFilter(new HTTPBasicAuthFilter(getPreferenceValue("username",
-				"username"), getPreferenceValue("password", "password"))); //$NON-NLS-1$ //$NON-NLS-2$
+                client.addFilter(new HTTPBasicAuthFilter(properties.getPreferenceValue("username",
+				"username"), properties.getPreferenceValue("password", "password"))); //$NON-NLS-1$ //$NON-NLS-2$
 
 		// Logging filter - raw request and response printed to sys.o
-		if (getPreferenceValue("raw_html_logging", "off").equals("on")) { //$NON-NLS-1$ //$NON-NLS-2$
+		if (properties.getPreferenceValue("raw_html_logging", "off").equals("on")) { //$NON-NLS-1$ //$NON-NLS-2$
 			client.addFilter(new LoggingFilter());
 		}
 		service = client.resource(getBaseURI());
-                sardine = SardineFactory.begin(getPreferenceValue("username","username"),
-        		getPreferenceValue("password", "password"));
+                sardine = SardineFactory.begin(properties.getPreferenceValue("username","username"),
+                		properties.getPreferenceValue("password", "password"));
 	}
        /**
 	 * Create an instance of OlogClient
 	 */
 	private OlogClient(String username, String password) {
-		init();
+		
+		properties = new OlogProperties();	
 
 		// Authentication and Authorization configuration
 		TrustManager mytm[] = null;
@@ -226,7 +136,7 @@ public class OlogClient {
 		}
 
 		try {
-			ctx = SSLContext.getInstance(getPreferenceValue("protocol", "SSL")); //$NON-NLS-1$
+			ctx = SSLContext.getInstance(properties.getPreferenceValue("protocol", "SSL")); //$NON-NLS-1$
 			ctx.init(null, mytm, null);
 		} catch (NoSuchAlgorithmException e) {
 			e.printStackTrace();
@@ -242,7 +152,7 @@ public class OlogClient {
                 client.addFilter(new HTTPBasicAuthFilter(username, password)); //$NON-NLS-1$ //$NON-NLS-2$
 
 		// Logging filter - raw request and response printed to sys.o
-		if (getPreferenceValue("raw_html_logging", "off").equals("on")) { //$NON-NLS-1$ //$NON-NLS-2$
+		if (properties.getPreferenceValue("raw_html_logging", "off").equals("on")) { //$NON-NLS-1$ //$NON-NLS-2$
 			client.addFilter(new LoggingFilter());
 		}
 		service = client.resource(getBaseURI());
@@ -324,13 +234,15 @@ public class OlogClient {
 		instance = new OlogClient(username, password);
                 return instance;
 	}
-	private static URI getBaseURI() {
+	
+	private URI getBaseURI() {
 		return UriBuilder.fromUri(
-				getPreferenceValue("olog_url", null)).build(); //$NON-NLS-1$
+				properties.getPreferenceValue("olog_url", null)).build(); //$NON-NLS-1$
 	}
-        private static URI getJCRBaseURI() {
+    
+	private URI getJCRBaseURI() {
 		return UriBuilder.fromUri(
-				getPreferenceValue("olog_jcr_url", null)).build(); //$NON-NLS-1$
+				properties.getPreferenceValue("olog_jcr_url", null)).build(); //$NON-NLS-1$
 	}
 
         /**
