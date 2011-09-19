@@ -21,6 +21,9 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import com.sun.jersey.api.client.ClientResponse.Status;
+
+import edu.msu.nscl.olog.api.OlogClient.OlogClientBuilder;
+
 import java.io.File;
 import java.io.FileWriter;
 
@@ -33,7 +36,8 @@ public class APITest {
 
 	@BeforeClass
 	public static void beforeTests() {
-		client = OlogClient.getInstance();
+		client = OlogClientBuilder.serviceURL().withHTTPAuthentication(true).create();
+//		client = OlogClient.getInstance();
 		logCount = client.getAllLogs().size();
 	}
 

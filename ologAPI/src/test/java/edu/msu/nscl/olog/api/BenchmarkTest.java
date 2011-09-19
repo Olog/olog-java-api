@@ -12,14 +12,16 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
+import edu.msu.nscl.olog.api.OlogClient.OlogClientBuilder;
+
 public class BenchmarkTest {
 
 	private static Collection<LogBuilder> logs = new HashSet<LogBuilder>();
-        private static Collection<Log> returnLogs = new HashSet<Log>();
+	private static Collection<Log> returnLogs = new HashSet<Log>();
 	private static long originalLogCount;
 	private long time;
-	private static OlogClient client = OlogClient
-			.getInstance();
+	private static OlogClient client = OlogClientBuilder.serviceURL()
+			.withHTTPAuthentication(true).create();
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
@@ -43,7 +45,7 @@ public class BenchmarkTest {
 		}
 		// Add all the logs;
 		try {
-			returnLogs= OlogClient.getInstance().add(logs);
+			returnLogs = client.add(logs);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -52,8 +54,8 @@ public class BenchmarkTest {
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
 
-		OlogClient.getInstance().remove(returnLogs);
-		assertTrue(OlogClient.getInstance().getAllLogs().size() == originalLogCount);
+		client.remove(returnLogs);
+		assertTrue(client.getAllLogs().size() == originalLogCount);
 	}
 
 	private static String getSubject(int i) {
@@ -82,8 +84,7 @@ public class BenchmarkTest {
 	public synchronized void query1Log() {
 		time = System.currentTimeMillis();
 		try {
-			Log ch = OlogClient.getInstance().getLog(
-					returnLogs.iterator().next().getId());
+			Log ch = client.getLog(returnLogs.iterator().next().getId());
 			assertTrue(ch.getSubject().equals("2000first:a<000>:0:0"));
 			System.out.println("query1Log duration : "
 					+ (System.currentTimeMillis() - time));
@@ -95,8 +96,7 @@ public class BenchmarkTest {
 	@Test
 	public void query10Logs() {
 		time = System.currentTimeMillis();
-		Collection<Log> chs = OlogClient.getInstance()
-				.findLogsBySearch("2000first:a<400>:0*");
+		Collection<Log> chs = client.findLogsBySearch("2000first:a<400>:0*");
 		assertTrue(chs.size() == 10);
 		System.out.println("query10Logs duration : "
 				+ (System.currentTimeMillis() - time));
@@ -105,8 +105,7 @@ public class BenchmarkTest {
 	@Test
 	public void query100Logs() {
 		time = System.currentTimeMillis();
-		Collection<Log> chs = OlogClient.getInstance()
-				.findLogsBySearch("2000first:a<400>:*");
+		Collection<Log> chs = client.findLogsBySearch("2000first:a<400>:*");
 		assertTrue(chs.size() == 100);
 		System.out.println("query100Logs duration : "
 				+ (System.currentTimeMillis() - time));
@@ -115,8 +114,7 @@ public class BenchmarkTest {
 	@Test
 	public void query500Logs() {
 		time = System.currentTimeMillis();
-		Collection<Log> chs = OlogClient.getInstance()
-				.findLogsBySearch("2000first:b*");
+		Collection<Log> chs = client.findLogsBySearch("2000first:b*");
 		assertTrue(chs.size() == 500);
 		System.out.println("query500Logs duration : "
 				+ (System.currentTimeMillis() - time));
@@ -125,8 +123,7 @@ public class BenchmarkTest {
 	@Test
 	public void query1000Logs() {
 		time = System.currentTimeMillis();
-		Collection<Log> chs = OlogClient.getInstance()
-				.findLogsBySearch("2000second:*");
+		Collection<Log> chs = client.findLogsBySearch("2000second:*");
 		assertTrue(chs.size() == 1000);
 		System.out.println("query1000Logs duration : "
 				+ (System.currentTimeMillis() - time));
@@ -135,8 +132,7 @@ public class BenchmarkTest {
 	@Test
 	public synchronized void query2000Logs() {
 		time = System.currentTimeMillis();
-		Collection<Log> chs = OlogClient.getInstance()
-				.findLogsBySearch("2000*");
+		Collection<Log> chs = client.findLogsBySearch("2000*");
 		assertTrue(chs.size() == 2000);
 		System.out.println("query2000Logs duration : "
 				+ (System.currentTimeMillis() - time));

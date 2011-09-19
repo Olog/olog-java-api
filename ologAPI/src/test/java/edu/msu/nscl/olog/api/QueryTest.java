@@ -19,6 +19,8 @@ import org.junit.Test;
 
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 
+import edu.msu.nscl.olog.api.OlogClient.OlogClientBuilder;
+
 //multivalue map
 
 public class QueryTest {
@@ -26,7 +28,7 @@ public class QueryTest {
         private static Collection<Log> returnLogs = new HashSet<Log>();
 	private static int initialLogCount;
 
-	private static OlogClient client = OlogClient.getInstance();
+	private static OlogClient client = OlogClientBuilder.serviceURL().withHTTPAuthentication(true).create();
 
 	// Tags
 	static TagBuilder tagA = tag("Taga", "me");
