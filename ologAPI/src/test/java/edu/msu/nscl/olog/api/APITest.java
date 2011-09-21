@@ -6,6 +6,7 @@ import static edu.msu.nscl.olog.api.LogbookBuilder.*;
 import static edu.msu.nscl.olog.api.TagBuilder.*;
 import static edu.msu.nscl.olog.api.PropertyBuilder.*;
 import java.io.IOException;
+import org.apache.jackrabbit.webdav.DavException;
 import static org.hamcrest.CoreMatchers.is;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -493,7 +494,7 @@ public class APITest {
 	}
 
         @Test
-        public void attachFileToLogId() throws IOException {
+        public void attachFileToLogId() throws IOException, DavException {
                 String owner = "me";
                 Log returnLog = null;
                 File f = null;
@@ -522,7 +523,7 @@ public class APITest {
                 }
         }
         @Test
-        public void attachImageFileToLogId() throws IOException {
+        public void attachImageFileToLogId() throws IOException, DavException {
                 String owner = "me";
                 Log returnLog = null;
                 File f = null;

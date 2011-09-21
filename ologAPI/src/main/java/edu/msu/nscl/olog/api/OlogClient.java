@@ -3,10 +3,8 @@ package edu.msu.nscl.olog.api;
 import static edu.msu.nscl.olog.api.LogBuilder.*;
 import static edu.msu.nscl.olog.api.PropertyBuilder.*;
 
-import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.URI;
 import java.security.KeyManagementException;
@@ -19,13 +17,8 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.prefs.BackingStoreException;
 import java.util.prefs.Preferences;
 
-import javax.imageio.ImageIO;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.TrustManager;
 import javax.ws.rs.core.MediaType;
@@ -42,8 +35,28 @@ import com.sun.jersey.api.client.filter.LoggingFilter;
 import com.sun.jersey.client.urlconnection.HTTPSProperties;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 
-import com.googlecode.sardine.*;
-import java.util.List;
+import com.sun.jersey.client.apache.ApacheHttpClient;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import javax.imageio.ImageIO;
+import org.apache.commons.httpclient.Credentials;
+import org.apache.commons.httpclient.HttpClient;
+import org.apache.commons.httpclient.UsernamePasswordCredentials;
+import org.apache.commons.httpclient.auth.AuthScope;
+import org.apache.commons.httpclient.contrib.ssl.EasySSLProtocolSocketFactory;
+import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
+import org.apache.commons.httpclient.methods.RequestEntity;
+import org.apache.commons.httpclient.protocol.Protocol;
+import org.apache.jackrabbit.webdav.DavConstants;
+import org.apache.jackrabbit.webdav.DavException;
+import org.apache.jackrabbit.webdav.MultiStatus;
+import org.apache.jackrabbit.webdav.MultiStatusResponse;
+import org.apache.jackrabbit.webdav.client.methods.DavMethod;
+import org.apache.jackrabbit.webdav.client.methods.MkColMethod;
+import org.apache.jackrabbit.webdav.client.methods.PropFindMethod;
+import org.apache.jackrabbit.webdav.client.methods.PutMethod;
 
 /**
  * TODO: make this not a singleton. Add a constructor to programmatically pass
@@ -61,7 +74,7 @@ import java.util.List;
 public class OlogClient {
 	private static OlogClient instance;
 	private WebResource service;
-    private Sardine sardine;
+        private HttpClient webdav;
 	private static Preferences preferences;
 	private static Properties defaultProperties;
 	private static Properties userCFProperties;
@@ -200,8 +213,14 @@ public class OlogClient {
 			client.addFilter(new LoggingFilter());
 		}
 		service = client.resource(getBaseURI());
-                sardine = SardineFactory.begin(getPreferenceValue("username","username"),
-        		getPreferenceValue("password", "password"));
+
+                ApacheHttpClient client2Apache = ApacheHttpClient.create(config);
+                webdav = client2Apache.getClientHandler().getHttpClient();
+                webdav.getHostConfiguration().setHost(getJCRBaseURI().getHost(), 8181);
+                Credentials credentials = new UsernamePasswordCredentials( getPreferenceValue("username",
+				"username"), getPreferenceValue("password", "password") );
+                webdav.getState().setCredentials(AuthScope.ANY, credentials);
+                webdav.getParams( ).setAuthenticationPreemptive(true);
 	}
        /**
 	 * Create an instance of OlogClient
@@ -246,7 +265,13 @@ public class OlogClient {
 			client.addFilter(new LoggingFilter());
 		}
 		service = client.resource(getBaseURI());
-                sardine = SardineFactory.begin(username, password);
+
+                ApacheHttpClient client2Apache = ApacheHttpClient.create(config);
+                webdav = client2Apache.getClientHandler().getHttpClient();
+                webdav.getHostConfiguration().setHost(getJCRBaseURI().getHost(), 8181);
+                Credentials credentials = new UsernamePasswordCredentials(username, password);
+                webdav.getState().setCredentials(AuthScope.ANY, credentials);
+                webdav.getParams( ).setAuthenticationPreemptive(true);
 	}
 
 	/**
@@ -341,15 +366,23 @@ public class OlogClient {
 	 * @return attachments collection object
 	 * @throws OlogException
 	 */
-	public Collection<String> getAttachments(Long logId) throws OlogException {
+	public Collection<String> getAttachments(Long logId) throws OlogException, DavException {
                 Collection<String> allFiles = new HashSet<String>();
 		try {
 			URI remote = UriBuilder.fromUri(getJCRBaseURI()).path("{arg1}/").build(logId);
-                        List<DavResource> resources = sardine.list(remote.toASCIIString());
-                        for (DavResource file : resources) {
-                            if (!file.isDirectory())
-                                allFiles.add(file.getHref().toASCIIString());
+                        DavMethod pFind = new PropFindMethod(remote.toASCIIString(), DavConstants.PROPFIND_ALL_PROP, DavConstants.DEPTH_1);
+                        webdav.executeMethod(pFind);
+                        MultiStatus multiStatus = pFind.getResponseBodyAsMultiStatus();
+                        MultiStatusResponse[] responses = multiStatus.getResponses();
+                        MultiStatusResponse currResponse;
+
+                        for (int i=0; i<responses.length; i++) {
+                            currResponse = responses[i];
+                            if (!currResponse.getHref().endsWith("/")) {
+                                allFiles.add(currResponse.getHref());
+                            }
                         }
+                        pFind.releaseConnection();
                         return allFiles;
 		} catch (UniformInterfaceException e) {
 			throw new OlogException(e);
@@ -552,37 +585,54 @@ public class OlogClient {
          */
         public void add(File local, Long logId) {
                 URI remote = UriBuilder.fromUri(getJCRBaseURI()).path("{arg1}").path("{arg2}").build(logId,local.getName());
+                URI remoteThumb = UriBuilder.fromUri(getJCRBaseURI()).path("thumbnails").path("{arg1}").path("{arg2}").build(logId,local.getName());
                 URI remoteDir = UriBuilder.fromUri(getJCRBaseURI()).path("{arg1}").build(logId);
+                URI remoteThumbDir = UriBuilder.fromUri(getJCRBaseURI()).path("thumbnails").path("{arg1}").build(logId);
                 final int ndx = local.getName().lastIndexOf(".");
         		final String extension = local.getName().substring(ndx + 1);
+                        DavMethod mkCol = new MkColMethod(remoteDir.toASCIIString());
+                        DavMethod mkColThumb = new MkColMethod(remoteThumbDir.toASCIIString());
+                        PutMethod putM = new PutMethod(remote.toASCIIString());
+                        PutMethod putMThumb = new PutMethod(remoteThumb.toASCIIString());
                 try {
-                    
-                        if(!sardine.exists(remoteDir.toASCIIString()))
-                            sardine.createDirectory(remoteDir.toASCIIString());
+                        PropFindMethod propM = new PropFindMethod(remoteDir.toASCIIString());
+                        webdav.executeMethod(propM);
+                        if(!propM.succeeded())
+                            webdav.executeMethod(mkCol);
+                        propM.releaseConnection();
+                        mkCol.releaseConnection();
                     } catch (IOException ex) {
                             throw new OlogException(ex);
                     }
                 try {
-                        FileInputStream fis = new FileInputStream(local);                      
-                        sardine.put(remote.toASCIIString(), fis);
-                		// If image add thumbnail
+                        FileInputStream fis = new FileInputStream(local);
+                        RequestEntity requestEntity = new InputStreamRequestEntity(fis);
+                        putM.setRequestEntity(requestEntity);
+                        webdav.executeMethod(putM);
+                        putM.releaseConnection();
+                		 //If image add thumbnail
                 		if ((extension.equals("jpeg") ||
                 				extension.equals("jpg") ||
                 				extension.equals("gif") ||
                 				extension.equals("png") )){
-                			//BufferedImage img = new BufferedImage(80, 80, BufferedImage.TYPE_INT_RGB);
-                			//img.createGraphics().drawImage(ImageIO.read(local).getScaledInstance(100, 100, BufferedImage.SCALE_SMOOTH),0,0,null);
-                			//ImageIO.write(img, "jpg", new File(local.getName()));
-                			//FileInputStream fis2 = new FileInputStream(new File(local.getName()));                      
-                			//sardine.put(remote.toASCIIString(), fis2);
+                                        PropFindMethod propMThumb = new PropFindMethod(remoteThumbDir.toASCIIString());
+                                        webdav.executeMethod(propMThumb);
+                                        if(!propMThumb.succeeded())
+                                            webdav.executeMethod(mkColThumb);
+                                        propMThumb.releaseConnection();
+                                        mkColThumb.releaseConnection();
+                			BufferedImage img = new BufferedImage(80, 80, BufferedImage.TYPE_INT_RGB);
+                			img.createGraphics().drawImage(ImageIO.read(local).getScaledInstance(80, 80, BufferedImage.SCALE_SMOOTH),0,0,null);
+                			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                                        ImageIO.write(img, "jpg", outputStream);
+                			InputStream fis2 = new ByteArrayInputStream(outputStream.toByteArray());
+                                        RequestEntity requestEntity2 = new InputStreamRequestEntity(fis2);
+                                        putMThumb.setRequestEntity(requestEntity2);
+                                        webdav.executeMethod(putMThumb);
+                                        putMThumb.releaseConnection();
                 		}
-                        try {
-                            fis.close();
-                        } catch (IOException e) {
-                            throw new OlogException(e);
-                        }
                 } catch (IOException e) {
-                        throw new OlogException(e);
+                        throw new OlogException(e);                       
                 }
         }
 
