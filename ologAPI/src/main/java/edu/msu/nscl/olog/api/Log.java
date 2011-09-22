@@ -96,12 +96,52 @@ public class Log implements Comparable<Log> {
 		return version;
 	}
 
+	/**
+	 * Get a Collection of all the Tags associated with this log.
+	 * 
+	 * @return
+	 */
 	public Collection<Tag> getTags() {
 		return tags.values();
 	}
 
+	/**
+	 * Get a set of Names of all the tags associated with this log.
+	 * 
+	 * @return Set of all tag Names
+	 */
+	public Collection<String> getTagNames() {
+		return tags.keySet();
+	}
+
+	/**
+	 * Returns a Tag with the name tagName if it exists on this log else returns
+	 * null.
+	 * 
+	 * @param tagName
+	 * @return {@link Tag} with name tagName else null if no such tag attached
+	 *         to this log
+	 */
+	public Tag getTag(String tagName) {
+		return tags.get(tagName);
+	}
+
+	/**
+	 * Get all the logbooks associated with this log.
+	 * 
+	 * @return a Collection of all {@link Logbook}
+	 */
 	public Collection<Logbook> getLogbooks() {
 		return logbooks.values();
+	}
+
+	/**
+	 * Get a set of all the logbook names.
+	 * 
+	 * @return
+	 */
+	public Collection<String> getLogbookNames() {
+		return logbooks.keySet();
 	}
 
 	// @deprecated not really deprecated, but javadoc doesn't have future
@@ -110,8 +150,34 @@ public class Log implements Comparable<Log> {
 		return attachments.values();
 	}
 
+	/**
+	 * Get all the {@link Property}s associated with this log.
+	 * 
+	 * @return
+	 */
 	public Collection<Property> getProperties() {
 		return properties.values();
+	}
+
+	/**
+	 * Get a set of names for all the properties associated with this log.
+	 * 
+	 * @return a set of all property names.
+	 */
+	public Collection<String> getPropertyNames() {
+		return properties.keySet();
+	}
+
+	/**
+	 * return the {@link Property} with name <tt>propertyName</tt> if it exists
+	 * on this log else return null.
+	 * 
+	 * @param propertyName
+	 * @return {@link Property} with name propertyName else null if no such
+	 *         property exists on this log.
+	 */
+	public Property getProperty(String propertyName) {
+		return properties.get(propertyName);
 	}
 
 	/*
