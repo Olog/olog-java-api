@@ -12,7 +12,7 @@ import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import edu.msu.nscl.olog.api.OlogClient.OlogClientBuilder;
+import edu.msu.nscl.olog.api.OlogClientImpl.OlogClientBuilder;
 
 public class BenchmarkTest {
 

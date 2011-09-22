@@ -58,19 +58,13 @@ import org.apache.jackrabbit.webdav.client.methods.PropFindMethod;
 import org.apache.jackrabbit.webdav.client.methods.PutMethod;
 
 /**
- * TODO: make this not a singleton. Add a constructor to programmatically pass
- * the configuration.
  * 
  * TODO: replace the usage of Xml* types with log,tag,logbooks
  * 
  * @author Eric Berryman taken from shroffk
  * 
  */
-/**
- * @author Eric Berryman taken from shroffk
- * 
- */
-public class OlogClient {
+public class OlogClientImpl implements OlogClient {
 	private WebResource service;
 	private HttpClient webdav;
 	private OlogProperties properties;
@@ -250,7 +244,7 @@ public class OlogClient {
 			return this;
 		}
 
-		public OlogClient create() {
+		public OlogClientImpl create() {
 			if (this.protocol.equalsIgnoreCase("http")) { //$NON-NLS-1$
 				this.clientConfig = new DefaultClientConfig();
 			} else if (this.protocol.equalsIgnoreCase("https")) { //$NON-NLS-1$
@@ -280,7 +274,7 @@ public class OlogClient {
 				this.password = ifNullReturnPreferenceValue(this.password,
 						"password", "password");
 			}
-			return new OlogClient(this.ologURI, this.ologJCRURI,
+			return new OlogClientImpl(this.ologURI, this.ologJCRURI,
 					this.clientConfig, this.withHTTPAuthentication,
 					this.username, this.password, this.executor);
 		}
@@ -296,7 +290,7 @@ public class OlogClient {
 
 	}
 
-	private OlogClient(URI ologURI, URI ologJCRURI, ClientConfig config,
+	private OlogClientImpl(URI ologURI, URI ologJCRURI, ClientConfig config,
 			boolean withHTTPBasicAuthFilter, String username, String password,
 			ExecutorService executor) {
 		this.ologJCRBaseURI = ologJCRURI;

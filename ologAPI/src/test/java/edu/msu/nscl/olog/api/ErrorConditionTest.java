@@ -10,7 +10,7 @@ import java.util.HashSet;
 
 import org.junit.Test;
 
-import edu.msu.nscl.olog.api.OlogClient.OlogClientBuilder;
+import edu.msu.nscl.olog.api.OlogClientImpl.OlogClientBuilder;
 
 public class ErrorConditionTest {
 

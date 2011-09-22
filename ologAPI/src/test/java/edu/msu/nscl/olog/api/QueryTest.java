@@ -19,7 +19,7 @@ import org.junit.Test;
 
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 
-import edu.msu.nscl.olog.api.OlogClient.OlogClientBuilder;
+import edu.msu.nscl.olog.api.OlogClientImpl.OlogClientBuilder;
 
 //multivalue map
 

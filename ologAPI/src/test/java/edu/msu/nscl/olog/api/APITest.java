@@ -23,7 +23,7 @@ import org.junit.rules.ExpectedException;
 
 import com.sun.jersey.api.client.ClientResponse.Status;
 
-import edu.msu.nscl.olog.api.OlogClient.OlogClientBuilder;
+import edu.msu.nscl.olog.api.OlogClientImpl.OlogClientBuilder;
 
 import java.io.File;
 import java.io.FileWriter;
