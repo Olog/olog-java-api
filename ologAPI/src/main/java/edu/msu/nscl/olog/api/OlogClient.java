@@ -1,7 +1,7 @@
 package edu.msu.nscl.olog.api;
 
-import static edu.msu.nscl.olog.api.LogBuilder.*;
-import static edu.msu.nscl.olog.api.PropertyBuilder.*;
+import static edu.msu.nscl.olog.api.LogBuilder.log;
+import static edu.msu.nscl.olog.api.PropertyBuilder.property;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -15,15 +15,22 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
-import java.util.Properties;
-import java.util.prefs.Preferences;
+import java.util.concurrent.ExecutorService;
+import java.util.Set;
+import java.util.logging.Level;
 
+import javax.imageio.ImageIO;
 import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.UriBuilder;
 
+import com.googlecode.sardine.DavResource;
+import com.googlecode.sardine.Sardine;
+import com.googlecode.sardine.SardineFactory;
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.UniformInterfaceException;
@@ -57,7 +64,6 @@ import org.apache.jackrabbit.webdav.client.methods.DavMethod;
 import org.apache.jackrabbit.webdav.client.methods.MkColMethod;
 import org.apache.jackrabbit.webdav.client.methods.PropFindMethod;
 import org.apache.jackrabbit.webdav.client.methods.PutMethod;
-
 /**
  * TODO: make this not a singleton. Add a constructor to programmatically pass
  * the configuration.
@@ -75,144 +81,221 @@ public class OlogClient {
 	private static OlogClient instance;
 	private WebResource service;
         private HttpClient webdav;
-	private static Preferences preferences;
-	private static Properties defaultProperties;
-	private static Properties userCFProperties;
-	private static Properties userHomeCFProperties;
-	private static Properties systemCFProperties;
-
+	private OlogProperties properties;
+	private ExecutorService executor;
+    
 	/**
-	 * check java preferences for the requested key - then checks the various
-	 * default logbooks files.
+	 * Builder Class to help create a olog client.
 	 * 
-	 * @param key
-	 * @param defaultValue
-	 * @return
+	 * @author shroffk
+	 *
 	 */
-	private static String getPreferenceValue(String key, String defaultValue) {
-		return preferences.get(key, getDefaultValue(key, defaultValue));
-	}
+	public static class OlogClientBuilder {
+		// required
+		private URI ologURI = null;
 
-	/**
-	 * cycles through the default logbooks files and return the value for the
-	 * key from the highest priority file
-	 * 
-	 * @param key
-	 * @param defaultValue
-	 * @return
-	 */
-	private static String getDefaultValue(String key, String defaultValue) {
-		if (userCFProperties.containsKey(key))
-			return userCFProperties.getProperty(key);
-		else if (userHomeCFProperties.containsKey(key))
-			return userHomeCFProperties.getProperty(key);
-		else if (systemCFProperties.containsKey(key))
-			return systemCFProperties.getProperty(key);
-		else if (defaultProperties.containsKey(key))
-			return defaultProperties.getProperty(key);
-		else
-			return defaultValue;
-	}
+		private URI ologJCRURI;
 
-	private void init() {
-		System.out.println("Initializing olog client.");
-		// log.info("Initializing olog client.");
-		preferences = Preferences.userNodeForPackage(OlogClient.class);
+		// optional
+		private boolean withHTTPAuthentication = false;
 
-		try {
-			File userCFPropertiesFile = new File(System.getProperty(
-					"olog.properties", ""));
-			File userHomeCFPropertiesFile = new File(System
-					.getProperty("user.home")
-					+ "/olog.properties");
-			File systemCFPropertiesFile = null;
-			if (System.getProperty("os.name").startsWith("Windows")) {
-				systemCFPropertiesFile = new File("/olog.properties");
-			} else if (System.getProperty("os.name").startsWith("Linux")) {
-				systemCFPropertiesFile = new File(
-						"/etc/olog.properties");
+		private ClientConfig clientConfig = null;
+		private TrustManager[] trustManager = new TrustManager[] { new DummyX509TrustManager() };;
+		@SuppressWarnings("unused")
+		private SSLContext sslContext = null;
+
+		private String protocol = null;
+		private String username = null;
+		private String password = null;
+
+		private ExecutorService executor = Executors.newSingleThreadExecutor();
+
+		private OlogProperties properties = new OlogProperties();
+
+		private static final String DEFAULT_OLOG_URL = "http://localhost:8080/Olog/resources"; //$NON-NLS-1$
+		private static final String DEFAULT_OLOG_JCR_URL = "http://localhost:8080/Olog/repository";
+		
+		private OlogClientBuilder() {
+			this.ologURI = URI.create(this.properties.getPreferenceValue(
+					"olog_url", DEFAULT_OLOG_URL));
+			this.ologJCRURI = URI.create(this.properties.getPreferenceValue("olog_jcr_url", DEFAULT_OLOG_JCR_URL));
+			this.protocol = this.ologURI.getScheme();
+		}
+
+		private OlogClientBuilder(URI uri) {
+			this.ologURI = uri;
+			this.protocol = this.ologURI.getScheme();
+		}
+
+		/**
+		 * Creates a {@link OlogClientBuilder} for a CF client to Default URL in the
+		 * channelfinder.properties.
+		 * 
+		 * @return
+		 */
+		public static OlogClientBuilder serviceURL() {
+			return new OlogClientBuilder();
+		}
+
+		/**
+		 * Creates a {@link OlogClientBuilder} for a CF client to URI <tt>uri</tt>.
+		 * 
+		 * @param uri
+		 * @return {@link OlogClientBuilder}
+		 */
+		public static OlogClientBuilder serviceURL(String uri) {
+			return new OlogClientBuilder(URI.create(uri));
+		}
+
+		/**
+		 * Creates a {@link OlogClientBuilder} for a CF client to {@link URI}
+		 * <tt>uri</tt>.
+		 * 
+		 * @param uri
+		 * @return {@link OlogClientBuilder}
+		 */
+		public static OlogClientBuilder serviceURL(URI uri) {
+			return new OlogClientBuilder(uri);
+		}
+		
+		/**
+		 * Set the jcr url to be used for the attachment repository.
+		 * 
+		 * @param username
+		 * @return {@link OlogClientBuilder}
+		 */
+		public OlogClientBuilder jcrURI(URI jcrURI) {
+			this.ologJCRURI = jcrURI;
+			return this;
+		}
+		
+		/**
+		 * Set the jcr url to be used for the attachment repository.
+		 * 
+		 * @param username
+		 * @return {@link OlogClientBuilder}
+		 */
+		public OlogClientBuilder jcrURI(String jcrURI) {
+			this.ologJCRURI = UriBuilder.fromUri(jcrURI).build();
+			return this;
+		}
+		
+		/**
+		 * Enable of Disable the HTTP authentication on the client connection.
+		 * 
+		 * @param withHTTPAuthentication
+		 * @return {@link OlogClientBuilder}
+		 */
+		public OlogClientBuilder withHTTPAuthentication(boolean withHTTPAuthentication) {
+			this.withHTTPAuthentication = withHTTPAuthentication;
+			return this;
+		}
+
+		/**
+		 * Set the username to be used for HTTP Authentication.
+		 * 
+		 * @param username
+		 * @return {@link OlogClientBuilder}
+		 */
+		public OlogClientBuilder username(String username) {
+			this.username = username;
+			return this;
+		}
+
+		/**
+		 * Set the password to be used for the HTTP Authentication.
+		 * 
+		 * @param password
+		 * @return {@link OlogClientBuilder}
+		 */
+		public OlogClientBuilder password(String password) {
+			this.password = password;
+			return this;
+		}
+		
+		/**
+		 * set the {@link ClientConfig} to be used while creating the
+		 * channelfinder client connection.
+		 * 
+		 * @param clientConfig
+		 * @return {@link OlogClientBuilder}
+		 */
+		public OlogClientBuilder withClientConfig(ClientConfig clientConfig) {
+			this.clientConfig = clientConfig;
+			return this;
+		}
+
+		@SuppressWarnings("unused")
+		private OlogClientBuilder withSSLContext(SSLContext sslContext) {
+			this.sslContext = sslContext;
+			return this;
+		}
+
+		/**
+		 * Set the trustManager that should be used for authentication.
+		 * 
+		 * @param trustManager
+		 * @return {@link OlogClientBuilder}
+		 */
+		public OlogClientBuilder withTrustManager(TrustManager[] trustManager) {
+			this.trustManager = trustManager;
+			return this;
+		}
+
+		/**
+		 * Provide your own executor on which the queries are to be made. <br>
+		 * By default a single threaded executor is used.
+		 * 
+		 * @param executor
+		 * @return {@link OlogClientBuilder}
+		 */
+		public OlogClientBuilder withExecutor(ExecutorService executor) {
+			this.executor = executor;
+			return this;
+		}
+		
+		public OlogClient create(){
+			if (this.protocol.equalsIgnoreCase("http")) { //$NON-NLS-1$
+				this.clientConfig = new DefaultClientConfig();
+			} else if (this.protocol.equalsIgnoreCase("https")) { //$NON-NLS-1$
+				if (this.clientConfig == null) {
+					SSLContext sslContext = null;
+					try {
+						sslContext = SSLContext.getInstance("SSL"); //$NON-NLS-1$
+						sslContext.init(null, this.trustManager, null);
+					} catch (NoSuchAlgorithmException e) {
+						throw new OlogException();
+					} catch (KeyManagementException e) {
+						throw new OlogException();
+					}
+					this.clientConfig = new DefaultClientConfig();
+					this.clientConfig.getProperties().put(
+							HTTPSProperties.PROPERTY_HTTPS_PROPERTIES,
+							new HTTPSProperties(new HostnameVerifier() {
+
+								@Override
+								public boolean verify(String hostname,
+										SSLSession session) {
+									return true;
+								}
+							}, sslContext));
+				}
+				this.username = ifNullReturnPreferenceValue(this.username,
+						"username", "username");
+				this.password = ifNullReturnPreferenceValue(this.password,
+						"password", "password");
+			}
+			return new OlogClient(this.ologURI, this.ologJCRURI, this.clientConfig,
+					this.withHTTPAuthentication, this.username, this.password, this.executor);			
+		}
+
+		private String ifNullReturnPreferenceValue(String value, String key,
+				String Default) {
+			if (value == null) {
+				return this.properties.getPreferenceValue(key, Default);
 			} else {
-				systemCFPropertiesFile = new File(
-						"/etc/olog.properties");
+				return value;
 			}
-
-			defaultProperties = new Properties();
-			try {
-				defaultProperties.load(this.getClass().getResourceAsStream(
-						"/config/olog.properties"));
-			} catch (Exception e) {
-				// The jar has been modified and the default packaged properties
-				// file has been moved
-				defaultProperties = null;
-			}
-
-			// Not using to new Properties(default Properties) constructor to
-			// make the hierarchy clear.
-			// TODO replace using constructor with default.
-			systemCFProperties = new Properties(defaultProperties);
-			if (systemCFPropertiesFile.exists()) {
-				systemCFProperties.load(new FileInputStream(
-						systemCFPropertiesFile));
-			}
-			userHomeCFProperties = new Properties(systemCFProperties);
-			if (userHomeCFPropertiesFile.exists()) {
-				userHomeCFProperties.load(new FileInputStream(
-						userHomeCFPropertiesFile));
-			}
-			userCFProperties = new Properties(userHomeCFProperties);
-			if (userCFPropertiesFile.exists()) {
-				userCFProperties
-						.load(new FileInputStream(userCFPropertiesFile));
-			}
-
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-	}
-
-	/**
-	 * Create an instance of OlogClient
-	 */
-	private OlogClient() {
-		init();
-
-		// Authentication and Authorization configuration
-		TrustManager mytm[] = null;
-		SSLContext ctx = null;
-
-		try {
-			// System.out.println(this.getClass()
-			// .getResource("/config/truststore.jks").getPath());
-			// mytm = new TrustManager[] { new MyX509TrustManager(
-			// getPreferenceValue("trustStore", this.getClass()
-			// .getResource("/config/truststore.jks").getPath()),
-			//					getPreferenceValue("trustPass", "default").toCharArray()) }; //$NON-NLS-1$
-			mytm = new TrustManager[] { new DummyX509TrustManager() };
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-
-		try {
-			ctx = SSLContext.getInstance(getPreferenceValue("protocol", "SSL")); //$NON-NLS-1$
-			ctx.init(null, mytm, null);
-		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
-		} catch (KeyManagementException e) {
-			e.printStackTrace();
-		}
-
-		ClientConfig config = new DefaultClientConfig();
-		config.getProperties().put(HTTPSProperties.PROPERTY_HTTPS_PROPERTIES,
-				new HTTPSProperties(null, ctx));
-		Client client = Client.create(config);
-                client.addFilter(new HTTPBasicAuthFilter(getPreferenceValue("username",
-				"username"), getPreferenceValue("password", "password"))); //$NON-NLS-1$ //$NON-NLS-2$
-
-		// Logging filter - raw request and response printed to sys.o
-		if (getPreferenceValue("raw_html_logging", "off").equals("on")) { //$NON-NLS-1$ //$NON-NLS-2$
-			client.addFilter(new LoggingFilter());
-		}
-		service = client.resource(getBaseURI());
 
                 ApacheHttpClient client2Apache = ApacheHttpClient.create(config);
                 webdav = client2Apache.getClientHandler().getHttpClient();
@@ -221,50 +304,19 @@ public class OlogClient {
 				"username"), getPreferenceValue("password", "password") );
                 webdav.getState().setCredentials(AuthScope.ANY, credentials);
                 webdav.getParams( ).setAuthenticationPreemptive(true);
+		}
+
+
 	}
-       /**
-	 * Create an instance of OlogClient
-	 */
-	private OlogClient(String username, String password) {
-		init();
-
-		// Authentication and Authorization configuration
-		TrustManager mytm[] = null;
-		SSLContext ctx = null;
-
-		try {
-			// System.out.println(this.getClass()
-			// .getResource("/config/truststore.jks").getPath());
-			// mytm = new TrustManager[] { new MyX509TrustManager(
-			// getPreferenceValue("trustStore", this.getClass()
-			// .getResource("/config/truststore.jks").getPath()),
-			//					getPreferenceValue("trustPass", "default").toCharArray()) }; //$NON-NLS-1$
-			mytm = new TrustManager[] { new DummyX509TrustManager() };
-		} catch (Exception ex) {
-			ex.printStackTrace();
-		}
-
-		try {
-			ctx = SSLContext.getInstance(getPreferenceValue("protocol", "SSL")); //$NON-NLS-1$
-			ctx.init(null, mytm, null);
-		} catch (NoSuchAlgorithmException e) {
-			e.printStackTrace();
-		} catch (KeyManagementException e) {
-			e.printStackTrace();
-		}
-
-		ClientConfig config = new DefaultClientConfig();
-		config.getProperties().put(HTTPSProperties.PROPERTY_HTTPS_PROPERTIES,
-				new HTTPSProperties(null, ctx));
+	
+	
+	private OlogClient(URI ologURI, URI ologJCRURI, ClientConfig config,
+			boolean withHTTPBasicAuthFilter , String username, String password, ExecutorService executor) {
 		Client client = Client.create(config);
-
-                client.addFilter(new HTTPBasicAuthFilter(username, password)); //$NON-NLS-1$ //$NON-NLS-2$
-
-		// Logging filter - raw request and response printed to sys.o
-		if (getPreferenceValue("raw_html_logging", "off").equals("on")) { //$NON-NLS-1$ //$NON-NLS-2$
-			client.addFilter(new LoggingFilter());
+		if (withHTTPBasicAuthFilter) {
+			client.addFilter(new HTTPBasicAuthFilter(username, password));
 		}
-		service = client.resource(getBaseURI());
+//		client.addFilter(new RawLoggingFilter(Logger
 
                 ApacheHttpClient client2Apache = ApacheHttpClient.create(config);
                 webdav = client2Apache.getClientHandler().getHttpClient();
@@ -273,7 +325,95 @@ public class OlogClient {
                 webdav.getState().setCredentials(AuthScope.ANY, credentials);
                 webdav.getParams( ).setAuthenticationPreemptive(true);
 	}
-
+//
+//	/**
+//	 * Create an instance of OlogClient
+//	 */
+//	private OlogClient() {
+//		
+//		properties = new OlogProperties();
+//
+//		// Authentication and Authorization configuration
+//		TrustManager mytm[] = null;
+//		SSLContext ctx = null;
+//
+//		try {
+//			mytm = new TrustManager[] { new DummyX509TrustManager() };
+//		} catch (Exception ex) {
+//			ex.printStackTrace();
+//		}
+//
+//		try {
+//			ctx = SSLContext.getInstance(properties.getPreferenceValue("protocol", "SSL")); //$NON-NLS-1$
+//			ctx.init(null, mytm, null);
+//		} catch (NoSuchAlgorithmException e) {
+//			e.printStackTrace();
+//		} catch (KeyManagementException e) {
+//			e.printStackTrace();
+//		}
+//
+//		ClientConfig config = new DefaultClientConfig();
+//		config.getProperties().put(HTTPSProperties.PROPERTY_HTTPS_PROPERTIES,
+//				new HTTPSProperties(null, ctx));
+//		Client client = Client.create(config);
+//                client.addFilter(new HTTPBasicAuthFilter(properties.getPreferenceValue("username",
+//				"username"), properties.getPreferenceValue("password", "password"))); //$NON-NLS-1$ //$NON-NLS-2$
+//
+//		// Logging filter - raw request and response printed to sys.o
+//		if (properties.getPreferenceValue("raw_html_logging", "off").equals("on")) { //$NON-NLS-1$ //$NON-NLS-2$
+//			client.addFilter(new LoggingFilter());
+//		}
+//		service = client.resource(getBaseURI());
+//                sardine = SardineFactory.begin(properties.getPreferenceValue("username","username"),
+//                		properties.getPreferenceValue("password", "password"));
+//	}
+//       /**
+//	 * Create an instance of OlogClient
+//	 */
+//	private OlogClient(String username, String password) {
+//		
+//		properties = new OlogProperties();	
+//
+//		// Authentication and Authorization configuration
+//		TrustManager mytm[] = null;
+//		SSLContext ctx = null;
+//
+//		try {
+//			// System.out.println(this.getClass()
+//			// .getResource("/config/truststore.jks").getPath());
+//			// mytm = new TrustManager[] { new MyX509TrustManager(
+//			// getPreferenceValue("trustStore", this.getClass()
+//			// .getResource("/config/truststore.jks").getPath()),
+//			//					getPreferenceValue("trustPass", "default").toCharArray()) }; //$NON-NLS-1$
+//			mytm = new TrustManager[] { new DummyX509TrustManager() };
+//		} catch (Exception ex) {
+//			ex.printStackTrace();
+//		}
+//
+//		try {
+//			ctx = SSLContext.getInstance(properties.getPreferenceValue("protocol", "SSL")); //$NON-NLS-1$
+//			ctx.init(null, mytm, null);
+//		} catch (NoSuchAlgorithmException e) {
+//			e.printStackTrace();
+//		} catch (KeyManagementException e) {
+//			e.printStackTrace();
+//		}
+//
+//		ClientConfig config = new DefaultClientConfig();
+//		config.getProperties().put(HTTPSProperties.PROPERTY_HTTPS_PROPERTIES,
+//				new HTTPSProperties(null, ctx));
+//		Client client = Client.create(config);
+//
+//                client.addFilter(new HTTPBasicAuthFilter(username, password)); //$NON-NLS-1$ //$NON-NLS-2$
+//
+//		// Logging filter - raw request and response printed to sys.o
+//		if (properties.getPreferenceValue("raw_html_logging", "off").equals("on")) { //$NON-NLS-1$ //$NON-NLS-2$
+//			client.addFilter(new LoggingFilter());
+//		}
+//		service = client.resource(getBaseURI());
+//                sardine = SardineFactory.begin(username, password);
+//	}
+//
 	/**
 	 * Get a list of all the logbooks currently existing
 	 * 
@@ -330,32 +470,34 @@ public class OlogClient {
 		}
 	}
 
-        /**
-	 * Returns the (singleton) instance of OlogClient
-	 *
-	 * @return the instance of OlogClient
-	 */
-	public static OlogClient getInstance() {
-                instance = new OlogClient();
-		return instance;
-	}
+//        /**
+//	 * Returns the (singleton) instance of OlogClient
+//	 *
+//	 * @return the instance of OlogClient
+//	 */
+//	public static OlogClient getInstance() {
+//                instance = new OlogClient();
+//		return instance;
+//	}
 
-        /**
-	 * Returns the (singleton) instance of OlogClient
-	 *
-	 * @return the instance of OlogClient
-	 */
-	public static OlogClient getInstance(String username, String password) {
-		instance = new OlogClient(username, password);
-                return instance;
-	}
-	private static URI getBaseURI() {
+//        /**
+//	 * Returns the (singleton) instance of OlogClient
+//	 *
+//	 * @return the instance of OlogClient
+//	 */
+//	public static OlogClient getInstance(String username, String password) {
+//		instance = new OlogClient(username, password);
+//                return instance;
+//	}
+	
+	private URI getBaseURI() {
 		return UriBuilder.fromUri(
-				getPreferenceValue("olog_url", null)).build(); //$NON-NLS-1$
+				properties.getPreferenceValue("olog_url", null)).build(); //$NON-NLS-1$
 	}
-        private static URI getJCRBaseURI() {
+    
+	private URI getJCRBaseURI() {
 		return UriBuilder.fromUri(
-				getPreferenceValue("olog_jcr_url", null)).build(); //$NON-NLS-1$
+				properties.getPreferenceValue("olog_jcr_url", null)).build(); //$NON-NLS-1$
 	}
 
         /**
