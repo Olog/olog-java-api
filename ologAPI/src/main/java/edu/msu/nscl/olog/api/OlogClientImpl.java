@@ -65,11 +65,10 @@ import org.apache.jackrabbit.webdav.client.methods.PutMethod;
  * 
  */
 public class OlogClientImpl implements OlogClient {
-	private WebResource service;
-	private HttpClient webdav;
-	private OlogProperties properties;
-	private ExecutorService executor;
-	private URI ologJCRBaseURI;
+	private final WebResource service;
+	private final HttpClient webdav;
+	private final ExecutorService executor;
+	private final URI ologJCRBaseURI;
 
 	/**
 	 * Builder Class to help create a olog client.
@@ -294,6 +293,7 @@ public class OlogClientImpl implements OlogClient {
 			boolean withHTTPBasicAuthFilter, String username, String password,
 			ExecutorService executor) {
 		this.ologJCRBaseURI = ologJCRURI;
+		this.executor = executor;
 		Client client = Client.create(config);
 		if (withHTTPBasicAuthFilter) {
 			client.addFilter(new HTTPBasicAuthFilter(username, password));
