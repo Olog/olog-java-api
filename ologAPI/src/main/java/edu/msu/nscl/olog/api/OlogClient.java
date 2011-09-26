@@ -4,9 +4,9 @@ import java.io.File;
 import java.util.Collection;
 import java.util.Map;
 
-import org.apache.jackrabbit.webdav.DavException;
+import javax.ws.rs.core.MultivaluedMap;
 
-import com.sun.jersey.core.util.MultivaluedMapImpl;
+import org.apache.jackrabbit.webdav.DavException;
 
 /**
  * 
@@ -199,7 +199,7 @@ public interface OlogClient {
 	 *            Multivalue map for searching a key with multiple values
 	 * @return collection of Log objects
 	 */
-	public Collection<Log> findLogs(MultivaluedMapImpl map);
+	public Collection<Log> findLogs(MultivaluedMap<String, String> map);
 
 	/**
 	 * Remove {tag} from all logs
