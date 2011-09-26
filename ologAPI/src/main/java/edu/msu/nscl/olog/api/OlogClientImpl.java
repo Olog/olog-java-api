@@ -662,32 +662,31 @@ public class OlogClientImpl implements OlogClient {
 			throw new OlogException(ex);
 		}
 		try {
-			 FileInputStream fis = new FileInputStream(local);
-             RequestEntity requestEntity = new InputStreamRequestEntity(fis);
-             putM.setRequestEntity(requestEntity);
-             webdav.executeMethod(putM);
-             putM.releaseConnection();
-     		 //If image add thumbnail
-     		if ((extension.equals("jpeg") ||
-     				extension.equals("jpg") ||
-     				extension.equals("gif") ||
-     				extension.equals("png") )){
-                             PropFindMethod propMThumb = new PropFindMethod(remoteThumbDir.toASCIIString());
-                             webdav.executeMethod(propMThumb);
-                             if(!propMThumb.succeeded())
-                                 webdav.executeMethod(mkColThumb);
-                             propMThumb.releaseConnection();
-                             mkColThumb.releaseConnection();
-                             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-                             Thumbnails.of(local)
-                                     .size(80, 80)
-                                     .outputFormat("jpg")
-                                     .toOutputStream(outputStream);
-     			InputStream fis2 = new ByteArrayInputStream(outputStream.toByteArray());
-                             RequestEntity requestEntity2 = new InputStreamRequestEntity(fis2);
-                             putMThumb.setRequestEntity(requestEntity2);
-                             webdav.executeMethod(putMThumb);
-                             putMThumb.releaseConnection();
+			FileInputStream fis = new FileInputStream(local);
+			RequestEntity requestEntity = new InputStreamRequestEntity(fis);
+			putM.setRequestEntity(requestEntity);
+			webdav.executeMethod(putM);
+			putM.releaseConnection();
+			// If image add thumbnail
+			if ((extension.equals("jpeg") || extension.equals("jpg")
+					|| extension.equals("gif") || extension.equals("png"))) {
+				PropFindMethod propMThumb = new PropFindMethod(
+						remoteThumbDir.toASCIIString());
+				webdav.executeMethod(propMThumb);
+				if (!propMThumb.succeeded())
+					webdav.executeMethod(mkColThumb);
+				propMThumb.releaseConnection();
+				mkColThumb.releaseConnection();
+				ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+				Thumbnails.of(local).size(80, 80).outputFormat("jpg")
+						.toOutputStream(outputStream);
+				InputStream fis2 = new ByteArrayInputStream(
+						outputStream.toByteArray());
+				RequestEntity requestEntity2 = new InputStreamRequestEntity(
+						fis2);
+				putMThumb.setRequestEntity(requestEntity2);
+				webdav.executeMethod(putMThumb);
+				putMThumb.releaseConnection();
 
 			}
 		} catch (IOException e) {
@@ -890,12 +889,6 @@ public class OlogClientImpl implements OlogClient {
 	 * @param logId
 	 */
 	public void remove(TagBuilder tag, Long logId) throws OlogException {
-//		try {
-//			service.path("tags").path(tag.toXml().getName()).path(logId.toString()).accept( //$NON-NLS-1$
-//							MediaType.APPLICATION_XML).delete();
-//		} catch (UniformInterfaceException e) {
-//			throw new OlogException(e);
-//		}
 		wrappedSubmit(new RemoveResourcefromLog<TagBuilder>(tag, logId));
 	}
 
@@ -908,10 +901,6 @@ public class OlogClientImpl implements OlogClient {
 	 */
 	public void remove(TagBuilder tag, Collection<Long> logIds)
 			throws OlogException {
-		// TODO optimize using the /tags/<name> payload with list of logs
-//		for (Long logId : logIds) {
-//			remove(tag, logId);
-//		}
 		wrappedSubmit(new RemoveResourcefromLog<TagBuilder>(tag, logIds));
 	}
 
@@ -925,13 +914,6 @@ public class OlogClientImpl implements OlogClient {
 	 * @throws OlogException
 	 */
 	public void remove(LogbookBuilder logbook, Long logId) throws OlogException {
-//		try {
-//			service.path("logbooks").path(logbook.toXml().getName())
-//					.path(logId.toString()).accept(MediaType.APPLICATION_XML)
-//					.accept(MediaType.APPLICATION_JSON).delete();
-//		} catch (UniformInterfaceException e) {
-//			throw new OlogException(e);
-//		}
 		wrappedSubmit(new RemoveResourcefromLog<LogbookBuilder>(logbook, logId));
 	}
 
@@ -944,9 +926,6 @@ public class OlogClientImpl implements OlogClient {
 	 */
 	public void remove(LogbookBuilder logbook, Collection<Long> logIds)
 			throws OlogException {
-//		for (Long log : logIds) {
-//			remove(logbook, log);
-//		}
 		wrappedSubmit(new RemoveResourcefromLog<LogbookBuilder>(logbook, logIds));
 	}
 
@@ -962,26 +941,8 @@ public class OlogClientImpl implements OlogClient {
 	 */
 	public void remove(PropertyBuilder property, Long logId)
 			throws OlogException {
-//		Log log = getLog(logId);
-//		XmlLog xmlLog = log(log).toXml();
-//		XmlProperties props = new XmlProperties();
-//		for (Property prop : log.getProperties()) {
-//			if (!prop.getName().equals(property.toXml().getName())) {
-//				props.addXmlProperty(property(prop).toXml());
-//			}
-//		}
-//		xmlLog.setXmlProperties(props);
-//		if (log != null) {
-//			add(log(new Log(xmlLog)));
-//		}
-		// try {
-		// service.path("logs").path(logId.toString()).path(property.toXml().getName())
-		// .accept(MediaType.APPLICATION_XML).accept(
-		// MediaType.APPLICATION_JSON).delete();
-		// } catch (UniformInterfaceException e) {
-		// throw new OlogException(e);
-		// }
-		wrappedSubmit(new RemoveResourcefromLog<PropertyBuilder>(property, logId));
+		wrappedSubmit(new RemoveResourcefromLog<PropertyBuilder>(property,
+				logId));
 	}
 
 	/**
@@ -994,10 +955,8 @@ public class OlogClientImpl implements OlogClient {
 	 */
 	public void remove(PropertyBuilder property, Collection<Long> logIds)
 			throws OlogException {
-//		for (Long log : logIds) {
-//			remove(property, log);
-//		}
-		wrappedSubmit(new RemoveResourcefromLog<PropertyBuilder>(property, logIds));
+		wrappedSubmit(new RemoveResourcefromLog<PropertyBuilder>(property,
+				logIds));
 	}
 
 	private class RemoveResourcefromLog<T> implements Callable<Void> {
@@ -1043,9 +1002,9 @@ public class OlogClientImpl implements OlogClient {
 					}
 
 				}
-			} else if (resource instanceof PropertyBuilder){
+			} else if (resource instanceof PropertyBuilder) {
 				for (Long logId : logIds) {
-					PropertyBuilder property = (PropertyBuilder) resource; 
+					PropertyBuilder property = (PropertyBuilder) resource;
 					Log log = getLog(logId);
 					// TODO consider directly deleting the property.
 					XmlLog xmlLog = log(log).toXml();
@@ -1113,16 +1072,7 @@ public class OlogClientImpl implements OlogClient {
 	 * @throws OlogException
 	 */
 	public void set(TagBuilder tag, Long logId) throws OlogException {
-		try {
-			Collection<Long> logs = new ArrayList<Long>();
-			logs.add(logId);
-			set(tag, logs);
-			// service.path("tags").path(tag.toXml().getName()).path(logId.toString())
-			// .type(MediaType.APPLICATION_XML).put(tag.toXml());
-		} catch (UniformInterfaceException e) {
-			throw new OlogException(e);
-		}
-
+		wrappedSubmit(new SetTag(tag, logId));
 	}
 
 	/**
@@ -1135,20 +1085,58 @@ public class OlogClientImpl implements OlogClient {
 	 *            collection of log ids
 	 */
 	public void set(TagBuilder tag, Collection<Long> logIds) {
-		// Better than recursively calling set(tag, log) for each log
-		try {
-			XmlTag xmlTag = tag.toXml();
-			XmlLogs logs = new XmlLogs();
-			LogBuilder log = null;
-			for (Long logId : logIds) {
-				log = log(getLog(logId));
-				logs.addXmlLog(log.toXml());
+		wrappedSubmit(new SetTag(tag, logIds));
+	}
+
+	private class SetTag implements Runnable {
+
+		private final TagBuilder tag;
+		private final Collection<Long> logIds;
+
+		public SetTag(TagBuilder tag, Long logId){
+			Collection<Long> logs = new ArrayList<Long>();
+			logs.add(logId);
+			this.tag = tag;
+			this.logIds = logs;
+		}
+		
+		public SetTag(TagBuilder tag, Collection<Long> logIds) {
+			this.tag = tag;
+			this.logIds = logIds;
+		}
+
+		@Override
+		public void run() {
+			try {
+				XmlTag xmlTag = tag.toXml();
+				XmlLogs logs = new XmlLogs();
+				LogBuilder log = null;
+				for (Long logId : logIds) {
+					log = log(getLog(logId));
+					logs.addXmlLog(log.toXml());
+				}
+				xmlTag.setXmlLogs(logs);
+				service.path("tags").path(tag.toXml().getName())
+						.accept(MediaType.APPLICATION_XML).put(xmlTag);
+			} catch (UniformInterfaceException e) {
+				throw new OlogException(e);
 			}
-			xmlTag.setXmlLogs(logs);
-			service.path("tags").path(tag.toXml().getName())
-					.accept(MediaType.APPLICATION_XML).put(xmlTag);
-		} catch (UniformInterfaceException e) {
-			throw new OlogException(e);
+		}
+
+	}
+
+	private void wrappedSubmit(Runnable runnable) {
+		try {
+			this.executor.submit(runnable).get();
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		} catch (ExecutionException e) {
+			if (e.getCause() != null
+					&& e.getCause() instanceof UniformInterfaceException) {
+				throw new OlogException(
+						(UniformInterfaceException) e.getCause());
+			}
+			throw new RuntimeException(e);
 		}
 	}
 
