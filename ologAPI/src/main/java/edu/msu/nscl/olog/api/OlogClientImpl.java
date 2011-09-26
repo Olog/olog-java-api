@@ -377,21 +377,6 @@ public class OlogClientImpl implements OlogClient {
 		}
 	}
 
-	private <T> T wrappedSubmit(Callable<T> callable) {
-		try {
-			return this.executor.submit(callable).get();
-		} catch (InterruptedException e) {
-			throw new RuntimeException(e);
-		} catch (ExecutionException e) {
-			if (e.getCause() != null
-					&& e.getCause() instanceof UniformInterfaceException) {
-				throw new OlogException(
-						(UniformInterfaceException) e.getCause());
-			}
-			throw new RuntimeException(e);
-		}
-	}
-
 	private URI getJCRBaseURI() {
 		return this.ologJCRBaseURI;
 	}
@@ -441,12 +426,28 @@ public class OlogClientImpl implements OlogClient {
 	 * @throws OlogException
 	 */
 	public Log getLog(Long logId) throws OlogException {
-		try {
-			return new Log(service.path("logs").path(logId.toString()).accept( //$NON-NLS-1$
-					MediaType.APPLICATION_XML).get(XmlLog.class));
-		} catch (UniformInterfaceException e) {
-			throw new OlogException(e);
+		return wrappedSubmit(new GetLog(logId));
+	}
+
+	private class GetLog implements Callable<Log> {
+
+		private final Long logId;
+
+		public GetLog(Long logId) {
+			this.logId = logId;
 		}
+
+		@Override
+		public Log call() throws OlogException {
+			try {
+				return new Log(service
+						.path("logs").path(logId.toString()).accept( //$NON-NLS-1$
+								MediaType.APPLICATION_XML).get(XmlLog.class));
+			} catch (UniformInterfaceException e) {
+				throw new OlogException(e);
+			}
+		}
+
 	}
 
 	/**
@@ -540,10 +541,7 @@ public class OlogClientImpl implements OlogClient {
 	 *            log id the tag to be added
 	 */
 	public void add(TagBuilder tag, Long logId) {
-		Log log = getLog(logId);
-		if (log != null) {
-			updateLog(log(log).with(tag));
-		}
+		wrappedSubmit(new AddResource<TagBuilder>(tag, logId));
 	}
 
 	/**
@@ -555,9 +553,7 @@ public class OlogClientImpl implements OlogClient {
 	 *            collection of log ids
 	 */
 	public void add(TagBuilder tag, Collection<Long> logIds) {
-		for (Long logId : logIds) {
-			add(tag, logId);
-		}
+		wrappedSubmit(new AddResource<TagBuilder>(tag, logIds));
 	}
 
 	/**
@@ -585,10 +581,7 @@ public class OlogClientImpl implements OlogClient {
 	 *            log id
 	 */
 	public void add(LogbookBuilder logbook, Long logId) {
-		Log log = getLog(logId);
-		if (log != null) {
-			updateLog(log(log).in(logbook));
-		}
+		wrappedSubmit(new AddResource<LogbookBuilder>(logbook, logId));
 	}
 
 	/**
@@ -596,9 +589,7 @@ public class OlogClientImpl implements OlogClient {
 	 * @param logbook
 	 */
 	public void add(LogbookBuilder logbook, Collection<Long> logIds) {
-		for (Long logId : logIds) {
-			add(logbook, logId);
-		}
+		wrappedSubmit(new AddResource<LogbookBuilder>(logbook, logIds));
 	}
 
 	/**
@@ -610,10 +601,7 @@ public class OlogClientImpl implements OlogClient {
 	 *            log id the property to be added
 	 */
 	public void add(PropertyBuilder property, Long logId) {
-		Log log = getLog(logId);
-		if (log != null) {
-			updateLog(log(log).property(property));
-		}
+		wrappedSubmit(new AddResource<PropertyBuilder>(property, logId));
 	}
 
 	/**
@@ -626,9 +614,53 @@ public class OlogClientImpl implements OlogClient {
 	 *            collection of log ids
 	 */
 	public void add(PropertyBuilder property, Collection<Long> logIds) {
-		for (Long logId : logIds) {
-			add(property, logId);
+		wrappedSubmit(new AddResource<PropertyBuilder>(property, logIds));
+	}
+
+	private class AddResource<T> implements Runnable {
+		private final T resource;
+		private final Collection<Long> logIds;
+
+		public AddResource(T resource, Long logId) {
+			this.resource = resource;
+			Collection<Long> logIds = new HashSet<Long>();
+			logIds.add(logId);
+			this.logIds = logIds;
 		}
+
+		public AddResource(T resource, Collection<Long> logIds) {
+			this.resource = resource;
+			this.logIds = logIds;
+		}
+
+		@Override
+		public void run() {
+			for (Long logId : logIds) {
+				try {
+					Log originalLog = new Log(service
+							.path("logs").path(logId.toString()).accept( //$NON-NLS-1$
+									MediaType.APPLICATION_XML)
+							.get(XmlLog.class));
+					if (originalLog != null) {
+						LogBuilder newLog = log(originalLog);
+						if (resource instanceof TagBuilder) {
+							newLog.with((TagBuilder) resource);
+						} else if (resource instanceof PropertyBuilder) {
+							newLog.property((PropertyBuilder) resource);
+						} else if (resource instanceof LogbookBuilder) {
+							newLog.in((LogbookBuilder) resource);
+						}
+						service.path("logs").path(newLog.toXml().getId().toString()).type( //$NON-NLS-1$
+										MediaType.APPLICATION_XML)
+								.post(newLog.toXml());
+					}
+				} catch (UniformInterfaceException e) {
+					throw new OlogException(e);
+				}
+			}
+
+		}
+
 	}
 
 	/**
@@ -1055,12 +1087,27 @@ public class OlogClientImpl implements OlogClient {
 	 * @throws OlogException
 	 */
 	public void updateLog(LogBuilder log) throws OlogException {
-		try {
-			service.path("logs").path(log.toXml().getId().toString()).type( //$NON-NLS-1$
-					MediaType.APPLICATION_XML).post(log.toXml());
-		} catch (UniformInterfaceException e) {
-			throw new OlogException(e);
+		wrappedSubmit(new UpdateLog(log));
+	}
+
+	private class UpdateLog implements Runnable {
+
+		private final LogBuilder log;
+
+		public UpdateLog(LogBuilder log) {
+			this.log = log;
 		}
+
+		@Override
+		public void run() throws OlogException {
+			try {
+				service.path("logs").path(log.toXml().getId().toString()).type( //$NON-NLS-1$
+						MediaType.APPLICATION_XML).post(log.toXml());
+			} catch (UniformInterfaceException e) {
+				throw new OlogException(e);
+			}
+		}
+
 	}
 
 	/**
@@ -1093,13 +1140,13 @@ public class OlogClientImpl implements OlogClient {
 		private final TagBuilder tag;
 		private final Collection<Long> logIds;
 
-		public SetTag(TagBuilder tag, Long logId){
+		public SetTag(TagBuilder tag, Long logId) {
 			Collection<Long> logs = new ArrayList<Long>();
 			logs.add(logId);
 			this.tag = tag;
 			this.logIds = logs;
 		}
-		
+
 		public SetTag(TagBuilder tag, Collection<Long> logIds) {
 			this.tag = tag;
 			this.logIds = logIds;
@@ -1123,6 +1170,21 @@ public class OlogClientImpl implements OlogClient {
 			}
 		}
 
+	}
+
+	private <T> T wrappedSubmit(Callable<T> callable) {
+		try {
+			return this.executor.submit(callable).get();
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		} catch (ExecutionException e) {
+			if (e.getCause() != null
+					&& e.getCause() instanceof UniformInterfaceException) {
+				throw new OlogException(
+						(UniformInterfaceException) e.getCause());
+			}
+			throw new RuntimeException(e);
+		}
 	}
 
 	private void wrappedSubmit(Runnable runnable) {
