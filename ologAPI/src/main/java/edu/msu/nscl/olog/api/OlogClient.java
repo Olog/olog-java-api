@@ -6,6 +6,7 @@ import java.util.Map;
 
 import javax.ws.rs.core.MultivaluedMap;
 
+import net.coobird.thumbnailator.Thumbnails;
 import org.apache.jackrabbit.webdav.DavException;
 
 /**
@@ -153,6 +154,11 @@ public interface OlogClient {
 	 * @param local
 	 */
 	public void add(File local, Long logId);
+                                        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                                        Thumbnails.of(local)
+                                                .size(80, 80)
+                                                .outputFormat("jpg")
+                                                .toOutputStream(outputStream);
 
 	/**
 	 * 
