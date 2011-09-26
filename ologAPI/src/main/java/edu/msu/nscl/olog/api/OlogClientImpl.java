@@ -16,6 +16,8 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.concurrent.Callable;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
@@ -25,6 +27,7 @@ import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLSession;
 import javax.net.ssl.TrustManager;
 import javax.ws.rs.core.MediaType;
+import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriBuilder;
 
 import com.sun.jersey.api.client.Client;
@@ -298,7 +301,8 @@ public class OlogClientImpl implements OlogClient {
 		if (withHTTPBasicAuthFilter) {
 			client.addFilter(new HTTPBasicAuthFilter(username, password));
 		}
-		//client.addFilter(new RawLoggingFilter(Logger.getLogger(RawLoggingFilter.class.getName())));
+		// client.addFilter(new
+		// RawLoggingFilter(Logger.getLogger(RawLoggingFilter.class.getName())));
 		service = client.resource(UriBuilder.fromUri(ologURI).build());
 
 		ApacheHttpClient client2Apache = ApacheHttpClient.create(config);
@@ -316,17 +320,7 @@ public class OlogClientImpl implements OlogClient {
 	 * @return string collection of logbooks
 	 */
 	public Collection<String> getAllLogbooks() {
-		Collection<String> allLogbooks = new HashSet<String>();
-		try {
-			XmlLogbooks allXmlLogbooks = service.path("logbooks")
-					.accept(MediaType.APPLICATION_XML).get(XmlLogbooks.class);
-			for (XmlLogbook xmlLogbook : allXmlLogbooks.getLogbooks()) {
-				allLogbooks.add(xmlLogbook.getName());
-			}
-			return allLogbooks;
-		} catch (UniformInterfaceException e) {
-			throw new OlogException(e);
-		}
+		return wrappedSubmit(new GetAllResrouce("logbooks"));
 	}
 
 	/**
@@ -335,17 +329,7 @@ public class OlogClientImpl implements OlogClient {
 	 * @return string collection of tags
 	 */
 	public Collection<String> getAllTags() {
-		Collection<String> allTags = new HashSet<String>();
-		try {
-			XmlTags allXmlTags = service.path("tags")
-					.accept(MediaType.APPLICATION_XML).get(XmlTags.class);
-			for (XmlTag xmlTag : allXmlTags.getTags()) {
-				allTags.add(xmlTag.getName());
-			}
-			return allTags;
-		} catch (UniformInterfaceException e) {
-			throw new OlogException(e);
-		}
+		return wrappedSubmit(new GetAllResrouce("tags"));
 	}
 
 	/**
@@ -355,16 +339,56 @@ public class OlogClientImpl implements OlogClient {
 	 */
 	@SuppressWarnings("deprecation")
 	public Collection<String> getAllLevels() {
-		Collection<String> allLevels = new HashSet<String>();
-		try {
-			XmlLevels allXmlLevels = service.path("levels")
-					.accept(MediaType.APPLICATION_XML).get(XmlLevels.class);
-			for (XmlLevel xmlLevel : allXmlLevels.getLevels()) {
-				allLevels.add(xmlLevel.getName());
+		return wrappedSubmit(new GetAllResrouce("levels"));
+	}
+
+	private class GetAllResrouce implements Callable<Collection<String>> {
+
+		private final String path;
+
+		public GetAllResrouce(String path) {
+			this.path = path;
+		}
+
+		@Override
+		public Collection<String> call() throws UniformInterfaceException {
+			Collection<String> allResources = new HashSet<String>();
+			if (path.equalsIgnoreCase("logbooks")) {
+				XmlLogbooks allXmlLogbooks = service.path("logbooks")
+						.accept(MediaType.APPLICATION_XML)
+						.get(XmlLogbooks.class);
+				for (XmlLogbook xmlLogbook : allXmlLogbooks.getLogbooks()) {
+					allResources.add(xmlLogbook.getName());
+				}
+			} else if (path.equalsIgnoreCase("tags")) {
+				XmlTags allXmlTags = service.path("tags")
+						.accept(MediaType.APPLICATION_XML).get(XmlTags.class);
+				for (XmlTag xmlTag : allXmlTags.getTags()) {
+					allResources.add(xmlTag.getName());
+				}
+			} else if (path.equalsIgnoreCase("levels")) {
+				XmlLevels allXmlLevels = service.path("levels")
+						.accept(MediaType.APPLICATION_XML).get(XmlLevels.class);
+				for (XmlLevel xmlLevel : allXmlLevels.getLevels()) {
+					allResources.add(xmlLevel.getName());
+				}
 			}
-			return allLevels;
-		} catch (UniformInterfaceException e) {
-			throw new OlogException(e);
+			return allResources;
+		}
+	}
+
+	private <T> T wrappedSubmit(Callable<T> callable) {
+		try {
+			return this.executor.submit(callable).get();
+		} catch (InterruptedException e) {
+			throw new RuntimeException(e);
+		} catch (ExecutionException e) {
+			if (e.getCause() != null
+					&& e.getCause() instanceof UniformInterfaceException) {
+				throw new OlogException(
+						(UniformInterfaceException) e.getCause());
+			}
+			throw new RuntimeException(e);
 		}
 	}
 
@@ -680,19 +704,7 @@ public class OlogClientImpl implements OlogClient {
 	 */
 	public Collection<Log> findLogsBySearch(String pattern)
 			throws OlogException {
-		try {
-			Collection<Log> logs = new HashSet<Log>();
-			XmlLogs xmlLogs = service
-					.path("logs").queryParam("search", pattern).accept( //$NON-NLS-1$ //$NON-NLS-2$
-							MediaType.APPLICATION_XML)
-					.accept(MediaType.APPLICATION_JSON).get(XmlLogs.class);
-			for (XmlLog xmllog : xmlLogs.getLogs()) {
-				logs.add(new Log(xmllog));
-			}
-			return Collections.unmodifiableCollection(logs);
-		} catch (UniformInterfaceException e) {
-			throw new OlogException(e);
-		}
+		return wrappedSubmit(new FindLogs("logs", pattern));
 	}
 
 	/**
@@ -701,20 +713,7 @@ public class OlogClientImpl implements OlogClient {
 	 * @return collection of Log objects
 	 */
 	public Collection<Log> findLogsByTag(String pattern) throws OlogException {
-		try {
-			Collection<Log> logs = new HashSet<Log>();
-			XmlLogs xmlLogs = service
-					.path("logs").queryParam("tag", pattern).accept( //$NON-NLS-1$ //$NON-NLS-2$
-							MediaType.APPLICATION_XML)
-					.accept(MediaType.APPLICATION_JSON).get(XmlLogs.class);
-			for (XmlLog xmllog : xmlLogs.getLogs()) {
-				logs.add(new Log(xmllog));
-			}
-			return Collections.unmodifiableCollection(logs);
-
-		} catch (UniformInterfaceException e) {
-			throw new OlogException(e);
-		}
+		return wrappedSubmit(new FindLogs("tag", pattern));
 	}
 
 	/**
@@ -730,19 +729,7 @@ public class OlogClientImpl implements OlogClient {
 	 */
 	public Collection<Log> findLogsByLogbook(String logbook)
 			throws OlogException {
-		try {
-			Collection<Log> logs = new HashSet<Log>();
-			XmlLogs xmlLogs = service
-					.path("logs").queryParam("logbook", logbook).accept( //$NON-NLS-1$ //$NON-NLS-2$
-							MediaType.APPLICATION_XML)
-					.accept(MediaType.APPLICATION_JSON).get(XmlLogs.class);
-			for (XmlLog xmllog : xmlLogs.getLogs()) {
-				logs.add(new Log(xmllog));
-			}
-			return Collections.unmodifiableCollection(logs);
-		} catch (UniformInterfaceException e) {
-			throw new OlogException(e);
-		}
+		return wrappedSubmit(new FindLogs("logbook", logbook));
 	}
 
 	/**
@@ -751,14 +738,9 @@ public class OlogClientImpl implements OlogClient {
 	 * @param map
 	 * @return collection of Log objects
 	 */
-	public Collection<Log> findLogs(Map<String, String> map) {
-		MultivaluedMapImpl mMap = new MultivaluedMapImpl();
-		Iterator<Map.Entry<String, String>> itr = map.entrySet().iterator();
-		while (itr.hasNext()) {
-			Map.Entry<String, String> entry = itr.next();
-			mMap.put(entry.getKey(), Arrays.asList(entry.getValue().split(",")));
-		}
-		return findLogs(mMap);
+	public Collection<Log> findLogs(Map<String, String> map)
+			throws OlogException {
+		return wrappedSubmit(new FindLogs(map));
 	}
 
 	/**
@@ -769,15 +751,48 @@ public class OlogClientImpl implements OlogClient {
 	 *            Multivalue map for searching a key with multiple values
 	 * @return collection of Log objects
 	 */
-	public Collection<Log> findLogs(MultivaluedMapImpl map) {
-		Collection<Log> logs = new HashSet<Log>();
-		XmlLogs xmlLogs = service.path("logs").queryParams(map)
-				.accept(MediaType.APPLICATION_XML)
-				.accept(MediaType.APPLICATION_JSON).get(XmlLogs.class);
-		for (XmlLog xmllog : xmlLogs.getLogs()) {
-			logs.add(new Log(xmllog));
+	public Collection<Log> findLogs(MultivaluedMap<String, String> map)
+			throws OlogException {
+		return wrappedSubmit(new FindLogs(map));
+	}
+
+	private class FindLogs implements Callable<Collection<Log>> {
+
+		private final MultivaluedMap<String, String> map;
+
+		public FindLogs(String queryParameter, String pattern) {
+			MultivaluedMap<String, String> mMap = new MultivaluedMapImpl();
+			mMap.putSingle(queryParameter, pattern);
+			this.map = mMap;
 		}
-		return Collections.unmodifiableCollection(logs);
+
+		public FindLogs(MultivaluedMap<String, String> map) {
+			this.map = map;
+		}
+
+		public FindLogs(Map<String, String> map) {
+			MultivaluedMap<String, String> mMap = new MultivaluedMapImpl();
+			Iterator<Map.Entry<String, String>> itr = map.entrySet().iterator();
+			while (itr.hasNext()) {
+				Map.Entry<String, String> entry = itr.next();
+				mMap.put(entry.getKey(),
+						Arrays.asList(entry.getValue().split(",")));
+			}
+			this.map = mMap;
+		}
+
+		@Override
+		public Collection<Log> call() throws Exception {
+			Collection<Log> logs = new HashSet<Log>();
+			XmlLogs xmlLogs = service.path("logs").queryParams(map)
+					.accept(MediaType.APPLICATION_XML)
+					.accept(MediaType.APPLICATION_JSON).get(XmlLogs.class);
+			for (XmlLog xmllog : xmlLogs.getLogs()) {
+				logs.add(new Log(xmllog));
+			}
+			return Collections.unmodifiableCollection(logs);
+		}
+
 	}
 
 	/**
@@ -877,12 +892,13 @@ public class OlogClientImpl implements OlogClient {
 	 * @param logId
 	 */
 	public void remove(TagBuilder tag, Long logId) throws OlogException {
-		try {
-			service.path("tags").path(tag.toXml().getName()).path(logId.toString()).accept( //$NON-NLS-1$
-							MediaType.APPLICATION_XML).delete();
-		} catch (UniformInterfaceException e) {
-			throw new OlogException(e);
-		}
+//		try {
+//			service.path("tags").path(tag.toXml().getName()).path(logId.toString()).accept( //$NON-NLS-1$
+//							MediaType.APPLICATION_XML).delete();
+//		} catch (UniformInterfaceException e) {
+//			throw new OlogException(e);
+//		}
+		wrappedSubmit(new RemoveResourcefromLog<TagBuilder>(tag, logId));
 	}
 
 	/**
@@ -895,9 +911,10 @@ public class OlogClientImpl implements OlogClient {
 	public void remove(TagBuilder tag, Collection<Long> logIds)
 			throws OlogException {
 		// TODO optimize using the /tags/<name> payload with list of logs
-		for (Long logId : logIds) {
-			remove(tag, logId);
-		}
+//		for (Long logId : logIds) {
+//			remove(tag, logId);
+//		}
+		wrappedSubmit(new RemoveResourcefromLog<TagBuilder>(tag, logIds));
 	}
 
 	/**
@@ -910,13 +927,14 @@ public class OlogClientImpl implements OlogClient {
 	 * @throws OlogException
 	 */
 	public void remove(LogbookBuilder logbook, Long logId) throws OlogException {
-		try {
-			service.path("logbooks").path(logbook.toXml().getName())
-					.path(logId.toString()).accept(MediaType.APPLICATION_XML)
-					.accept(MediaType.APPLICATION_JSON).delete();
-		} catch (UniformInterfaceException e) {
-			throw new OlogException(e);
-		}
+//		try {
+//			service.path("logbooks").path(logbook.toXml().getName())
+//					.path(logId.toString()).accept(MediaType.APPLICATION_XML)
+//					.accept(MediaType.APPLICATION_JSON).delete();
+//		} catch (UniformInterfaceException e) {
+//			throw new OlogException(e);
+//		}
+		wrappedSubmit(new RemoveResourcefromLog<LogbookBuilder>(logbook, logId));
 	}
 
 	/**
@@ -928,9 +946,10 @@ public class OlogClientImpl implements OlogClient {
 	 */
 	public void remove(LogbookBuilder logbook, Collection<Long> logIds)
 			throws OlogException {
-		for (Long log : logIds) {
-			remove(logbook, log);
-		}
+//		for (Long log : logIds) {
+//			remove(logbook, log);
+//		}
+		wrappedSubmit(new RemoveResourcefromLog<LogbookBuilder>(logbook, logIds));
 	}
 
 	/**
@@ -945,18 +964,18 @@ public class OlogClientImpl implements OlogClient {
 	 */
 	public void remove(PropertyBuilder property, Long logId)
 			throws OlogException {
-		Log log = getLog(logId);
-		XmlLog xmlLog = log(log).toXml();
-		XmlProperties props = new XmlProperties();
-		for (Property prop : log.getProperties()) {
-			if (!prop.getName().equals(property.toXml().getName())) {
-				props.addXmlProperty(property(prop).toXml());
-			}
-		}
-		xmlLog.setXmlProperties(props);
-		if (log != null) {
-			add(log(new Log(xmlLog)));
-		}
+//		Log log = getLog(logId);
+//		XmlLog xmlLog = log(log).toXml();
+//		XmlProperties props = new XmlProperties();
+//		for (Property prop : log.getProperties()) {
+//			if (!prop.getName().equals(property.toXml().getName())) {
+//				props.addXmlProperty(property(prop).toXml());
+//			}
+//		}
+//		xmlLog.setXmlProperties(props);
+//		if (log != null) {
+//			add(log(new Log(xmlLog)));
+//		}
 		// try {
 		// service.path("logs").path(logId.toString()).path(property.toXml().getName())
 		// .accept(MediaType.APPLICATION_XML).accept(
@@ -964,6 +983,7 @@ public class OlogClientImpl implements OlogClient {
 		// } catch (UniformInterfaceException e) {
 		// throw new OlogException(e);
 		// }
+		wrappedSubmit(new RemoveResourcefromLog<PropertyBuilder>(property, logId));
 	}
 
 	/**
@@ -976,9 +996,76 @@ public class OlogClientImpl implements OlogClient {
 	 */
 	public void remove(PropertyBuilder property, Collection<Long> logIds)
 			throws OlogException {
-		for (Long log : logIds) {
-			remove(property, log);
+//		for (Long log : logIds) {
+//			remove(property, log);
+//		}
+		wrappedSubmit(new RemoveResourcefromLog<PropertyBuilder>(property, logIds));
+	}
+
+	private class RemoveResourcefromLog<T> implements Callable<Void> {
+
+		private final Collection<Long> logIds;
+		private final T resource;
+
+		public RemoveResourcefromLog(T resource, Collection<Long> logIds) {
+			this.logIds = logIds;
+			this.resource = resource;
 		}
+
+		public RemoveResourcefromLog(T resource, Long logId) {
+			Collection<Long> ids = new ArrayList<Long>();
+			ids.add(logId);
+			this.logIds = ids;
+			this.resource = resource;
+		}
+
+		@Override
+		public Void call() throws OlogException {
+			if (resource instanceof TagBuilder) {
+				for (Long logId : logIds) {
+					try {
+						TagBuilder tag = (TagBuilder) resource;
+						service.path("tags").path(tag.toXml().getName()).path(logId.toString()).accept( //$NON-NLS-1$
+										MediaType.APPLICATION_XML).delete();
+					} catch (UniformInterfaceException e) {
+						throw new OlogException(e);
+					}
+				}
+			} else if (resource instanceof LogbookBuilder) {
+				for (Long logId : logIds) {
+					try {
+						LogbookBuilder logbook = (LogbookBuilder) resource;
+						service.path("logbooks")
+								.path(logbook.toXml().getName())
+								.path(logId.toString())
+								.accept(MediaType.APPLICATION_XML)
+								.accept(MediaType.APPLICATION_JSON).delete();
+					} catch (UniformInterfaceException e) {
+						throw new OlogException(e);
+					}
+
+				}
+			} else if (resource instanceof PropertyBuilder){
+				for (Long logId : logIds) {
+					PropertyBuilder property = (PropertyBuilder) resource; 
+					Log log = getLog(logId);
+					// TODO consider directly deleting the property.
+					XmlLog xmlLog = log(log).toXml();
+					XmlProperties props = new XmlProperties();
+					for (Property prop : log.getProperties()) {
+						if (!prop.getName().equals(property.toXml().getName())) {
+							props.addXmlProperty(property(prop).toXml());
+						}
+					}
+					xmlLog.setXmlProperties(props);
+					if (log != null) {
+						add(log(new Log(xmlLog)));
+					}
+				}
+			}
+			return null;
+		}
+
 	}
 
 	/**
