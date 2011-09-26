@@ -154,11 +154,6 @@ public interface OlogClient {
 	 * @param local
 	 */
 	public void add(File local, Long logId);
-                                        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-                                        Thumbnails.of(local)
-                                                .size(80, 80)
-                                                .outputFormat("jpg")
-                                                .toOutputStream(outputStream);
 
 	/**
 	 * 

@@ -662,35 +662,33 @@ public class OlogClientImpl implements OlogClient {
 			throw new OlogException(ex);
 		}
 		try {
-			FileInputStream fis = new FileInputStream(local);
-			RequestEntity requestEntity = new InputStreamRequestEntity(fis);
-			putM.setRequestEntity(requestEntity);
-			webdav.executeMethod(putM);
-			putM.releaseConnection();
-			// If image add thumbnail
-			if ((extension.equals("jpeg") || extension.equals("jpg")
-					|| extension.equals("gif") || extension.equals("png"))) {
-				PropFindMethod propMThumb = new PropFindMethod(
-						remoteThumbDir.toASCIIString());
-				webdav.executeMethod(propMThumb);
-				if (!propMThumb.succeeded())
-					webdav.executeMethod(mkColThumb);
-				propMThumb.releaseConnection();
-				mkColThumb.releaseConnection();
-				BufferedImage img = new BufferedImage(80, 80,
-						BufferedImage.TYPE_INT_RGB);
-				img.createGraphics().drawImage(
-						ImageIO.read(local).getScaledInstance(80, 80,
-								BufferedImage.SCALE_SMOOTH), 0, 0, null);
-				ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-				ImageIO.write(img, "jpg", outputStream);
-				InputStream fis2 = new ByteArrayInputStream(
-						outputStream.toByteArray());
-				RequestEntity requestEntity2 = new InputStreamRequestEntity(
-						fis2);
-				putMThumb.setRequestEntity(requestEntity2);
-				webdav.executeMethod(putMThumb);
-				putMThumb.releaseConnection();
+			 FileInputStream fis = new FileInputStream(local);
+             RequestEntity requestEntity = new InputStreamRequestEntity(fis);
+             putM.setRequestEntity(requestEntity);
+             webdav.executeMethod(putM);
+             putM.releaseConnection();
+     		 //If image add thumbnail
+     		if ((extension.equals("jpeg") ||
+     				extension.equals("jpg") ||
+     				extension.equals("gif") ||
+     				extension.equals("png") )){
+                             PropFindMethod propMThumb = new PropFindMethod(remoteThumbDir.toASCIIString());
+                             webdav.executeMethod(propMThumb);
+                             if(!propMThumb.succeeded())
+                                 webdav.executeMethod(mkColThumb);
+                             propMThumb.releaseConnection();
+                             mkColThumb.releaseConnection();
+                             ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                             Thumbnails.of(local)
+                                     .size(80, 80)
+                                     .outputFormat("jpg")
+                                     .toOutputStream(outputStream);
+     			InputStream fis2 = new ByteArrayInputStream(outputStream.toByteArray());
+                             RequestEntity requestEntity2 = new InputStreamRequestEntity(fis2);
+                             putMThumb.setRequestEntity(requestEntity2);
+                             webdav.executeMethod(putMThumb);
+                             putMThumb.releaseConnection();
+
 			}
 		} catch (IOException e) {
 			throw new OlogException(e);
