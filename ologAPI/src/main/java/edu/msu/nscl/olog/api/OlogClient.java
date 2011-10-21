@@ -36,16 +36,19 @@ import com.sun.jersey.client.urlconnection.HTTPSProperties;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 import com.sun.jersey.client.apache.ApacheHttpClient;
+import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
-import net.coobird.thumbnailator.Thumbnails;
+import javax.imageio.ImageIO;
 import org.apache.commons.httpclient.Credentials;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.apache.commons.httpclient.auth.AuthScope;
+import org.apache.commons.httpclient.contrib.ssl.EasySSLProtocolSocketFactory;
 import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
 import org.apache.commons.httpclient.methods.RequestEntity;
+import org.apache.commons.httpclient.protocol.Protocol;
 import org.apache.jackrabbit.webdav.DavConstants;
 import org.apache.jackrabbit.webdav.DavException;
 import org.apache.jackrabbit.webdav.MultiStatus;
@@ -618,11 +621,10 @@ public class OlogClient {
                                             webdav.executeMethod(mkColThumb);
                                         propMThumb.releaseConnection();
                                         mkColThumb.releaseConnection();
-                                        ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
-                                        Thumbnails.of(local)
-                                                .size(80, 80)
-                                                .outputFormat("jpg")
-                                                .toOutputStream(outputStream);
+                			BufferedImage img = new BufferedImage(80, 80, BufferedImage.TYPE_INT_RGB);
+                			img.createGraphics().drawImage(ImageIO.read(local).getScaledInstance(80, 80, BufferedImage.SCALE_SMOOTH),0,0,null);
+                			ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+                                        ImageIO.write(img, "jpg", outputStream);
                 			InputStream fis2 = new ByteArrayInputStream(outputStream.toByteArray());
                                         RequestEntity requestEntity2 = new InputStreamRequestEntity(fis2);
                                         putMThumb.setRequestEntity(requestEntity2);
