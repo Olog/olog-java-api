@@ -22,6 +22,9 @@ import org.junit.Test;
 import org.junit.rules.ExpectedException;
 
 import com.sun.jersey.api.client.ClientResponse.Status;
+
+import edu.msu.nscl.olog.api.OlogClientImpl.OlogClientBuilder;
+
 import java.io.File;
 import java.io.FileWriter;
 
@@ -34,7 +37,7 @@ public class APITest {
 
     @BeforeClass
     public static void beforeTests() {
-        client = OlogClient.getInstance();
+		client = OlogClientBuilder.serviceURL().withHTTPAuthentication(true).create();
         logCount = client.getAllLogs().size();
     }
 
@@ -475,7 +478,7 @@ public class APITest {
         } finally {
             if (returnLog != null) {
                 client.remove(returnLog.getId());
-//                            client.remove("file.txt",returnLog.getId());
+                            client.remove("file.txt",returnLog.getId());                         
             }
             if (f.exists()) {
                 boolean success = f.delete();
@@ -498,7 +501,7 @@ public class APITest {
         } finally {
             if (returnLog != null) {
                 client.remove(returnLog.getId());
-//                            client.remove("the_homercar.jpg",returnLog.getId());
+                            client.remove("the_homercar.jpg",returnLog.getId());
             }
         }
     }

@@ -10,6 +10,8 @@ import java.util.HashSet;
 
 import org.junit.Test;
 
+import edu.msu.nscl.olog.api.OlogClientImpl.OlogClientBuilder;
+
 public class ErrorConditionTest {
 
 	// TODO
@@ -26,7 +28,7 @@ public class ErrorConditionTest {
 	//
 	// }
 
-	private static OlogClient client = OlogClient.getInstance();
+	private static OlogClient client = OlogClientBuilder.serviceURL().withHTTPAuthentication(true).create();
 	// TODO: javax.ws.rs.WebApplicationException should be in OlogException
 	@Test(expected = javax.ws.rs.WebApplicationException.class)
 	public void addOrphanLog() {
@@ -51,7 +53,7 @@ public class ErrorConditionTest {
 		// log ch2 has empty name
 		try {
                         client.add(logbook("book"));
-			client.getInstance().add(logs);
+			client.add(logs);
 			assertTrue(false);
 		} catch (OlogException e) {
 			assertTrue(true);
