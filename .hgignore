@@ -1,3 +1,11 @@
 glob:app/tmp/*
 glob:olog/target/*
 glob:ologAPI/target/*
+
+\.orig$
+\.orig\..*$
+\.chg\..*$
+\.rej$
+\.conflict\~$
+glob:target/*
+
