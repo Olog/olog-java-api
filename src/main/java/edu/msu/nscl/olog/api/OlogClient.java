@@ -93,7 +93,7 @@ public interface OlogClient {
 	 * @param logId
 	 *            log id the tag to be added
 	 */
-	public void add(TagBuilder tag, Long logId);
+	public void add(TagBuilder tag, Long logId) throws OlogException;
 
 	/**
 	 * Add the Tag <tt>tag</tt> to the set of the logs with ids <tt>logIds</tt>

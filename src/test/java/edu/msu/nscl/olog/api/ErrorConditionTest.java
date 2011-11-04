@@ -118,7 +118,7 @@ public class ErrorConditionTest {
 	public void addTag2NonExistentLog() {
                 Long nonExistingId = 0L;
 		try {
-			client.set(tag("sometag"),
+			client.add(tag("sometag"),
 					nonExistingId);
 			assertTrue(false);
 		} catch (OlogException e) {

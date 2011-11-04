@@ -636,26 +636,21 @@ public class OlogClientImpl implements OlogClient {
 		@Override
 		public void run() {
 			for (Long logId : logIds) {
-				try {
-					Log originalLog = new Log(service
-							.path("logs").path(logId.toString()).accept( //$NON-NLS-1$
-									MediaType.APPLICATION_XML)
-							.get(XmlLog.class));
-					if (originalLog != null) {
-						LogBuilder newLog = log(originalLog);
-						if (resource instanceof TagBuilder) {
-							newLog.with((TagBuilder) resource);
-						} else if (resource instanceof PropertyBuilder) {
-							newLog.property((PropertyBuilder) resource);
-						} else if (resource instanceof LogbookBuilder) {
-							newLog.in((LogbookBuilder) resource);
-						}
-						service.path("logs").path(newLog.toXml().getId().toString()).type( //$NON-NLS-1$
-										MediaType.APPLICATION_XML)
-								.post(newLog.toXml());
+				Log originalLog = new Log(service
+						.path("logs").path(logId.toString()).accept( //$NON-NLS-1$
+								MediaType.APPLICATION_XML).get(XmlLog.class));
+				if (originalLog != null) {
+					LogBuilder newLog = log(originalLog);
+					if (resource instanceof TagBuilder) {
+						newLog.with((TagBuilder) resource);
+					} else if (resource instanceof PropertyBuilder) {
+						newLog.property((PropertyBuilder) resource);
+					} else if (resource instanceof LogbookBuilder) {
+						newLog.in((LogbookBuilder) resource);
 					}
-				} catch (UniformInterfaceException e) {
-					throw new OlogException(e);
+					service.path("logs").path(newLog.toXml().getId().toString()).type( //$NON-NLS-1$
+									MediaType.APPLICATION_XML)
+							.post(newLog.toXml());
 				}
 			}
 
@@ -1159,8 +1154,7 @@ public class OlogClientImpl implements OlogClient {
 				XmlLogs logs = new XmlLogs();
 				LogBuilder log = null;
 				for (Long logId : logIds) {
-					log = log(getLog(logId));
-					logs.addXmlLog(log.toXml());
+					logs.addXmlLog(new XmlLog(logId));
 				}
 				xmlTag.setXmlLogs(logs);
 				service.path("tags").path(tag.toXml().getName())
@@ -1190,14 +1184,14 @@ public class OlogClientImpl implements OlogClient {
 	private void wrappedSubmit(Runnable runnable) {
 		try {
 			this.executor.submit(runnable).get();
-		} catch (InterruptedException e) {
-			throw new RuntimeException(e);
 		} catch (ExecutionException e) {
 			if (e.getCause() != null
 					&& e.getCause() instanceof UniformInterfaceException) {
 				throw new OlogException(
 						(UniformInterfaceException) e.getCause());
 			}
+			throw new RuntimeException(e);
+		} catch (InterruptedException e) {
 			throw new RuntimeException(e);
 		}
 	}
