@@ -1032,17 +1032,20 @@ public class OlogClientImpl implements OlogClient {
 			} else if (resource instanceof PropertyBuilder) {
 				for (Long logId : logIds) {
 					PropertyBuilder property = (PropertyBuilder) resource;
-					Log log = getLog(logId);
 					// TODO consider directly deleting the property.
-					XmlLog xmlLog = log(log).toXml();
+					XmlLog xmlLog = service
+							.path("logs").path(logId.toString()).accept( //$NON-NLS-1$
+									MediaType.APPLICATION_XML)
+							.get(XmlLog.class);
 					XmlProperties props = new XmlProperties();
-					for (Property prop : log.getProperties()) {
+					for (XmlProperty prop : xmlLog.getXmlProperties()
+							.getProperties()) {
 						if (!prop.getName().equals(property.toXml().getName())) {
-							props.addXmlProperty(property(prop).toXml());
+							props.addXmlProperty(prop);
 						}
 					}
 					xmlLog.setXmlProperties(props);
-					if (log != null) {
+					if (xmlLog != null) {
 						add(log(new Log(xmlLog)));
 					}
 				}
