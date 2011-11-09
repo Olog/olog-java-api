@@ -4,6 +4,7 @@ import java.io.File;
 import java.net.URI;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Map;
@@ -36,6 +37,10 @@ import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 import com.sun.jersey.client.apache.ApacheHttpClient;
 import com.sun.jersey.client.urlconnection.HTTPSProperties;
 
+import static edu.msu.nscl.olog.api.TagBuilder.*;
+import static edu.msu.nscl.olog.api.LogbookBuilder.*;
+import static edu.msu.nscl.olog.api.LogBuilder.*;
+
 /**
  * 
  * 
@@ -47,7 +52,7 @@ public class OlogClientImpl implements OlogClient {
 	private final HttpClient webdav;
 	private final ExecutorService executor;
 	private final URI ologJCRBaseURI;
-	
+
 	/**
 	 * Builder Class to help create a olog client.
 	 * 
@@ -301,8 +306,7 @@ public class OlogClientImpl implements OlogClient {
 			public Collection<Logbook> call() throws Exception {
 
 				Collection<Logbook> allLogbooks = new HashSet<Logbook>();
-				XmlLogbooks allXmlLogbooks = service
-						.path("logbooks")
+				XmlLogbooks allXmlLogbooks = service.path("logbooks")
 						.accept(MediaType.APPLICATION_XML)
 						.get(XmlLogbooks.class);
 				for (XmlLogbook xmlLogbook : allXmlLogbooks.getLogbooks()) {
@@ -316,8 +320,20 @@ public class OlogClientImpl implements OlogClient {
 
 	@Override
 	public Collection<Tag> listTags() throws OlogException {
-		// TODO Auto-generated method stub
-		return null;
+		return wrappedSubmit(new Callable<Collection<Tag>>() {
+
+			@Override
+			public Collection<Tag> call() throws Exception {
+				Collection<Tag> allTags = new HashSet<Tag>();
+				XmlTags allXmlTags = service.path("tags")
+						.accept(MediaType.APPLICATION_XML).get(XmlTags.class);
+				for (XmlTag xmlTag : allXmlTags.getTags()) {
+					allTags.add(new Tag(xmlTag));
+				}
+				return allTags;
+			}
+
+		});
 	}
 
 	@Override
@@ -360,21 +376,35 @@ public class OlogClientImpl implements OlogClient {
 
 	@Override
 	public void set(TagBuilder tag) throws OlogException {
-		// TODO Auto-generated method stub
-		
+		wrappedSubmit(new SetTag(tag));
+
 	}
 
 	@Override
 	public void set(TagBuilder tag, Long logId) throws OlogException {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void set(TagBuilder tag, Collection<Long> logIds)
 			throws OlogException {
 		// TODO Auto-generated method stub
-		
+	}
+
+	private class SetTag implements Runnable {
+		private final TagBuilder tag;
+
+		public SetTag(TagBuilder tag) {
+			this.tag = tag(tag.build());
+		}
+
+		@Override
+		public void run() {
+			XmlTag xmlTag = tag.toXml();
+			service.path("tags").path(tag.toXml().getName())
+					.accept(MediaType.APPLICATION_XML).put(xmlTag);
+		}
 	}
 
 	@Override
@@ -385,20 +415,20 @@ public class OlogClientImpl implements OlogClient {
 	@Override
 	public void set(LogbookBuilder logbook, Long logId) throws OlogException {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void set(LogbookBuilder logbook, Collection<Long> logIds)
 			throws OlogException {
 		// TODO Auto-generated method stub
-		
+
 	}
-	
-	private class SetLogBook implements Runnable{
+
+	private class SetLogBook implements Runnable {
 		private final LogbookBuilder logbook;
-		
-		SetLogBook(LogbookBuilder logbook){
+
+		SetLogBook(LogbookBuilder logbook) {
 			this.logbook = logbook;
 		}
 
@@ -409,7 +439,7 @@ public class OlogClientImpl implements OlogClient {
 					.accept(MediaType.APPLICATION_XML)
 					.accept(MediaType.APPLICATION_JSON).put(xmlLogbook);
 		}
-		
+
 	}
 
 	@Override
@@ -428,59 +458,59 @@ public class OlogClientImpl implements OlogClient {
 	@Override
 	public void update(TagBuilder tag) throws OlogException {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void update(TagBuilder tag, Long logId) throws OlogException {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void update(TagBuilder tag, Collection<Long> logIds)
 			throws OlogException {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void update(LogbookBuilder logbookBuilder) throws OlogException {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void update(LogbookBuilder logbook, Long logId) throws OlogException {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void update(LogbookBuilder logbook, Collection<Long> logIds)
 			throws OlogException {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void update(PropertyBuilder property, Long logId)
 			throws OlogException {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void update(PropertyBuilder property, Collection<Long> logIds)
 			throws OlogException {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void add(File local, Long logId) throws OlogException {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
@@ -519,78 +549,96 @@ public class OlogClientImpl implements OlogClient {
 
 	@Override
 	public void deleteTag(String tag) throws OlogException {
-		// TODO Auto-generated method stub
-		
+		final String deleteTag = tag;
+		wrappedSubmit(new Runnable() {
+
+			@Override
+			public void run() {
+				service.path("tags").path(deleteTag)
+						.accept(MediaType.APPLICATION_XML)
+						.accept(MediaType.APPLICATION_JSON).delete();
+			}
+		});
+
 	}
 
 	@Override
 	public void deleteLogbook(String logbook) throws OlogException {
-		// TODO Auto-generated method stub
-		
+		final String logbookName = logbook;
+		wrappedSubmit(new Runnable() {
+
+			@Override
+			public void run() {
+				service.path("logbooks").path(logbookName)
+						.accept(MediaType.APPLICATION_XML)
+						.accept(MediaType.APPLICATION_JSON).delete();
+			}
+
+		});
 	}
 
 	@Override
 	public void delete(LogBuilder log) throws OlogException {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void delete(Long logId) throws OlogException {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void delete(Collection<Log> logs) throws OlogException {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void delete(TagBuilder tag, Long logId) throws OlogException {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void delete(TagBuilder tag, Collection<Long> logIds)
 			throws OlogException {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void delete(LogbookBuilder logbook, Long logId) throws OlogException {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void delete(LogbookBuilder logbook, Collection<Long> logIds)
 			throws OlogException {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void delete(PropertyBuilder property, Long logId)
 			throws OlogException {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void delete(PropertyBuilder property, Collection<Long> logIds)
 			throws OlogException {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	@Override
 	public void delete(String fileName, Long logId) {
 		// TODO Auto-generated method stub
-		
+
 	}
 
 	private <T> T wrappedSubmit(Callable<T> callable) {
@@ -607,7 +655,7 @@ public class OlogClientImpl implements OlogClient {
 			throw new RuntimeException(e);
 		}
 	}
-	
+
 	private void wrappedSubmit(Runnable runnable) {
 		try {
 			this.executor.submit(runnable).get(60, TimeUnit.SECONDS);
@@ -620,6 +668,6 @@ public class OlogClientImpl implements OlogClient {
 			throw new RuntimeException(e);
 		} catch (Exception e) {
 			throw new RuntimeException(e);
-		} 
+		}
 	}
 }

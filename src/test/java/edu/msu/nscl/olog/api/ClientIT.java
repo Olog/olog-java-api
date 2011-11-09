@@ -10,6 +10,7 @@ import org.junit.Test;
 
 import edu.msu.nscl.olog.api.OlogClientImpl.OlogClientBuilder;
 import static edu.msu.nscl.olog.api.LogbookBuilder.*;
+import static edu.msu.nscl.olog.api.TagBuilder.*;
 
 public class ClientIT {
 
@@ -45,7 +46,7 @@ public class ClientIT {
 	}
 
 	/**
-	 * create, find and delete a logbook
+	 * create(set), find and delete a logbook
 	 * 
 	 */
 	@Test
@@ -62,6 +63,29 @@ public class ClientIT {
 		} finally {
 			// delete a logbook
 			client.deleteLogbook(logbook.build().getName());
+			assertFalse("failed to clean up the testLogbook", client
+					.listLogbooks().contains(logbook.build()));
+		}
+	}
+
+	/**
+	 * create(set), find and delete a tag
+	 */
+	@Test
+	public void tagsTest() {
+		TagBuilder tag = tag("testTag");
+		try {
+			// set a tag
+			// list all tag
+			client.set(tag);
+			assertTrue("failed to set the testTag", client.listTags()
+					.contains(tag.build()));
+		} catch (Exception e) {
+			fail(e.getCause().toString());
+		} finally {
+			// delete a tag
+			client.deleteLogbook(tag.build().getName());
+			assertFalse("failed to clean the testTag", client.listTags().contains(tag.build()));
 		}
 	}
 }
