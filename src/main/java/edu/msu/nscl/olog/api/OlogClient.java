@@ -17,26 +17,50 @@ import org.apache.jackrabbit.webdav.DavException;
  * 
  */
 public interface OlogClient {
+
+	// Logbook operations
+
 	/**
-	 * Get a list of all the logbooks currently existing
+	 * Get a list of all the logbooks currently existings
 	 * 
 	 * @return string collection of logbooks
+	 * @throws OlogException
 	 */
-	public Collection<String> getAllLogbooks();
+	public Collection<Logbook> listLogbooks() throws OlogException;
 
 	/**
 	 * Get a list of all the tags currently existing
 	 * 
 	 * @return string collection of tags
+	 * @throws OlogException
 	 */
-	public Collection<String> getAllTags();
+	public Collection<Tag> listTags() throws OlogException;
 
 	/**
 	 * Get a list of all the levels currently existing
 	 * 
 	 * @return string collection of levels
+	 * @throws OlogException
 	 */
-	public Collection<String> getAllLevels();
+	public Collection<Level> listLevels() throws OlogException;
+
+	/**
+	 * Return all the logs. ***Warning can return a lot of data***
+	 * 
+	 * @return Collection of all log entires
+	 * @throws OlogException
+	 */
+	public Collection<Log> listLogs();
+
+	/**
+	 * Returns a log that exactly matches the logId <tt>logId</tt>
+	 * 
+	 * @param logId
+	 *            log id
+	 * @return Log object
+	 * @throws OlogException
+	 */
+	public Log getLog(Long logId) throws OlogException;
 
 	/**
 	 * Returns a collection of attachments that matches the logId <tt>logId</tt>
@@ -50,67 +74,162 @@ public interface OlogClient {
 			DavException;
 
 	/**
-	 * Returns a log that exactly matches the logId <tt>logId</tt>
-	 * 
-	 * @param logId
-	 *            log id
-	 * @return Log object
-	 * @throws OlogException
-	 */
-	public Log getLog(Long logId) throws OlogException;
-
-	/**
-	 * Add a single log <tt>log</tt>
+	 * Set a single log <tt>log</tt>, if the log already exists it is replaced.
+	 * Destructive operation
 	 * 
 	 * @param log
 	 *            the log to be added
 	 * @throws OlogException
 	 */
-	public Log add(LogBuilder log) throws OlogException;
+	public Log set(LogBuilder log) throws OlogException;
 
 	/**
-	 * Add a set of logs
+	 * Set a set of logs Destructive operation.
+	 * 
+	 * @param logs
+	 *            collection of logs to be added
+	 * @throws OlogException
+	 */
+	public Collection<Log> set(Collection<LogBuilder> logs)
+			throws OlogException;
+
+	/**
+	 * Set a Tag <tt>tag</tt> with no associated logs to the database.
+	 * 
+	 * @param tag
+	 * @throws OlogException
+	 */
+	public void set(TagBuilder tag) throws OlogException;
+
+	// /**
+	// * Set a Collection of tags <tt>tags</tt> with no associated logs.
+	// *
+	// * @param tags
+	// * @throws OlogException
+	// */
+	// public void set(Collection<TagBuilder> tags) throws OlogException;
+
+	/**
+	 * Add tag <tt>tag</tt> to log <tt>logId</tt> and remove the tag from all
+	 * other logs
+	 * 
+	 * @param tag
+	 * @param logId
+	 * @throws OlogException
+	 */
+	public void set(TagBuilder tag, Long logId) throws OlogException;
+
+	/**
+	 * Set tag <tt>tag</tt> on the set of logs <tt>logIds</tt> and remove it
+	 * from all others
+	 * 
+	 * @param tag
+	 * @param logIds
+	 * @throws OlogException
+	 */
+	public void set(TagBuilder tag, Collection<Long> logIds)
+			throws OlogException;
+
+	/**
+	 * Set a new logbook <tt>logbook</tt> with no associated logs.
+	 * 
+	 * @param logbookBuilder
+	 * @throws OlogException
+	 */
+	public void set(LogbookBuilder logbookBuilder) throws OlogException;
+
+	/**
+	 * Set Logbook <tt>logbook</tt> to the log <tt>logId</tt> and remove it from
+	 * all other logs
+	 * 
+	 * @param logbook
+	 *            logbook builder
+	 * @param logId
+	 *            log id
+	 * @throws OlogException
+	 */
+	public void set(LogbookBuilder logbook, Long logId) throws OlogException;
+
+	/**
+	 * Set Logbook <tt>logbook</tt> to the logs <tt>logIds</tt> and remove it
+	 * from all other logs
+	 * 
+	 * @param logbook
+	 *            logbook builder
+	 * @param logIds
+	 *            log ids
+	 * @throws OlogException
+	 */
+	public void set(LogbookBuilder logbook, Collection<Long> logIds)
+			throws OlogException;
+
+	/**
+	 * Set the logbook <tt>logbook</tt> to the logs identified by
+	 * <tt>logIds</tt> and remove it from all other logs
+	 * 
+	 * @param logIds
+	 * @param logbook
+	 * 
+	 *            public void set(LogbookBuilder logbook, Collection<Long>
+	 *            logIds);
+	 * 
+	 *            /** Update a single log <tt>log</tt>
+	 * 
+	 * @param log
+	 *            the log to be added
+	 * @throws OlogException
+	 */
+	public Log update(LogBuilder log) throws OlogException;
+
+	/**
+	 * Update a set of logs
 	 * 
 	 * @param logs
 	 *            set of logs to be added
 	 * @throws OlogException
 	 */
-	public Collection<Log> add(Collection<LogBuilder> logs)
+	public Collection<Log> update(Collection<LogBuilder> logs)
 			throws OlogException;
 
 	/**
-	 * Add a Tag <tt>tag</tt> with no associated logs to the database.
+	 * Update a Tag <tt>tag</tt>
 	 * 
 	 * @param tag
+	 * @throws OlogException
 	 */
-	public void add(TagBuilder tag);
+	public void update(TagBuilder tag) throws OlogException;
 
 	/**
-	 * Add Tag <tt>tag </tt> to Log with name <tt>logName</tt>
+	 * Update Tag <tt>tag </tt> by adding it to Log with name <tt>logName</tt>
 	 * 
 	 * @param tag
 	 *            tag builder
 	 * @param logId
 	 *            log id the tag to be added
+	 * @throws OlogException
 	 */
-	public void add(TagBuilder tag, Long logId) throws OlogException;
+	public void update(TagBuilder tag, Long logId) throws OlogException;
 
 	/**
-	 * Add the Tag <tt>tag</tt> to the set of the logs with ids <tt>logIds</tt>
+	 * Update the Tag <tt>tag</tt> by adding it to the set of the logs with ids
+	 * <tt>logIds</tt>
 	 * 
 	 * @param tag
 	 *            tag builder
 	 * @param logIds
 	 *            collection of log ids
+	 * @throws OlogException
 	 */
-	public void add(TagBuilder tag, Collection<Long> logIds);
+	public void update(TagBuilder tag, Collection<Long> logIds)
+			throws OlogException;
 
 	/**
 	 * Add a new logbook <tt>logbook</tt>
 	 * 
 	 * @param logbookBuilder
+	 * @throws OlogException
 	 */
-	public void add(LogbookBuilder logbookBuilder);
+	public void update(LogbookBuilder logbookBuilder) throws OlogException;
 
 	/**
 	 * Add Logbook <tt>logbook</tt> to the log <tt>logId</tt>
@@ -119,46 +238,56 @@ public interface OlogClient {
 	 *            logbook builder
 	 * @param logId
 	 *            log id
+	 * @throws OlogException
 	 */
-	public void add(LogbookBuilder logbook, Long logId);
+	public void update(LogbookBuilder logbook, Long logId) throws OlogException;
 
 	/**
 	 * @param logIds
 	 * @param logbook
+	 * @throws OlogException
 	 */
-	public void add(LogbookBuilder logbook, Collection<Long> logIds);
+	public void update(LogbookBuilder logbook, Collection<Long> logIds)
+			throws OlogException;
 
 	/**
-	 * Add Property <tt>property</tt> to Log with id <tt>logId</tt>
+	 * Update Property <tt>property</tt> by adding it to Log with id
+	 * <tt>logId</tt>
 	 * 
 	 * @param property
 	 *            property builder
 	 * @param logId
 	 *            log id the property to be added
+	 * @throws OlogException
 	 */
-	public void add(PropertyBuilder property, Long logId);
+	public void update(PropertyBuilder property, Long logId)
+			throws OlogException;
 
 	/**
-	 * Add the Property <tt>property</tt> to the set of the logs with ids
-	 * <tt>logIds</tt>
+	 * Update the Property <tt>property</tt> by adding it to the set of the logs
+	 * with ids <tt>logIds</tt>
 	 * 
 	 * @param property
 	 *            property builder
 	 * @param logIds
 	 *            collection of log ids
+	 * @throws OlogException
 	 */
-	public void add(PropertyBuilder property, Collection<Long> logIds);
+	public void update(PropertyBuilder property, Collection<Long> logIds)
+			throws OlogException;
 
 	/**
 	 * @param logId
 	 * @param local
+	 * @throws OlogException
 	 */
-	public void add(File local, Long logId);
+	public void add(File local, Long logId) throws OlogException;
 
 	/**
 	 * 
 	 * @param pattern
 	 * @return collection of Log objects
+	 * @throws OlogException
 	 */
 	public Collection<Log> findLogsBySearch(String pattern)
 			throws OlogException;
@@ -167,6 +296,7 @@ public interface OlogClient {
 	 * 
 	 * @param pattern
 	 * @return collection of Log objects
+	 * @throws OlogException
 	 */
 	public Collection<Log> findLogsByTag(String pattern) throws OlogException;
 
@@ -189,8 +319,10 @@ public interface OlogClient {
 	 * 
 	 * @param map
 	 * @return collection of Log objects
+	 * @throws OlogException
 	 */
-	public Collection<Log> findLogs(Map<String, String> map);
+	public Collection<Log> findLogs(Map<String, String> map)
+			throws OlogException;
 
 	/**
 	 * Multivalued map used to search for a key with multiple values. e.g.
@@ -199,15 +331,18 @@ public interface OlogClient {
 	 * @param map
 	 *            Multivalue map for searching a key with multiple values
 	 * @return collection of Log objects
+	 * @throws OlogException
 	 */
-	public Collection<Log> findLogs(MultivaluedMap<String, String> map);
+	public Collection<Log> findLogs(MultivaluedMap<String, String> map)
+			throws OlogException;
 
 	/**
 	 * Remove {tag} from all logs
 	 * 
 	 * @param tag
+	 * @throws OlogException
 	 */
-	public void deleteTag(String tag);
+	public void deleteTag(String tag) throws OlogException;
 
 	/**
 	 * 
@@ -216,8 +351,6 @@ public interface OlogClient {
 	 */
 	public void deleteLogbook(String logbook) throws OlogException;
 
-	public Collection<Log> getAllLogs();
-
 	/**
 	 * Remove the log identified by <tt>log</tt>
 	 * 
@@ -225,7 +358,7 @@ public interface OlogClient {
 	 *            log to be removed
 	 * @throws OlogException
 	 */
-	public void remove(LogBuilder log) throws OlogException;
+	public void delete(LogBuilder log) throws OlogException;
 
 	/**
 	 * Remove the log identified by <tt>log</tt>
@@ -234,7 +367,7 @@ public interface OlogClient {
 	 *            log id log id to be removed
 	 * @throws OlogException
 	 */
-	public void remove(Long logId) throws OlogException;
+	public void delete(Long logId) throws OlogException;
 
 	/**
 	 * Remove the log collection identified by <tt>log</tt>
@@ -243,7 +376,7 @@ public interface OlogClient {
 	 *            logs to be removed
 	 * @throws OlogException
 	 */
-	public void remove(Collection<Log> logs) throws OlogException;
+	public void delete(Collection<Log> logs) throws OlogException;
 
 	/**
 	 * Remove tag <tt>tag</tt> from the log with the id <tt>logId</tt>
@@ -251,7 +384,7 @@ public interface OlogClient {
 	 * @param tag
 	 * @param logId
 	 */
-	public void remove(TagBuilder tag, Long logId) throws OlogException;
+	public void delete(TagBuilder tag, Long logId) throws OlogException;
 
 	/**
 	 * Remove the tag <tt>tag </tt> from all the logs <tt>logNames</tt>
@@ -260,7 +393,7 @@ public interface OlogClient {
 	 * @param logIds
 	 * @throws OlogException
 	 */
-	public void remove(TagBuilder tag, Collection<Long> logIds)
+	public void delete(TagBuilder tag, Collection<Long> logIds)
 			throws OlogException;
 
 	/**
@@ -272,7 +405,7 @@ public interface OlogClient {
 	 *            log id
 	 * @throws OlogException
 	 */
-	public void remove(LogbookBuilder logbook, Long logId) throws OlogException;
+	public void delete(LogbookBuilder logbook, Long logId) throws OlogException;
 
 	/**
 	 * Remove the logbook <tt>logbook</tt> from the set of logs <tt>logIds</tt>
@@ -281,7 +414,7 @@ public interface OlogClient {
 	 * @param logIds
 	 * @throws OlogException
 	 */
-	public void remove(LogbookBuilder logbook, Collection<Long> logIds)
+	public void delete(LogbookBuilder logbook, Collection<Long> logIds)
 			throws OlogException;
 
 	/**
@@ -294,7 +427,7 @@ public interface OlogClient {
 	 *            log id
 	 * @throws OlogException
 	 */
-	public void remove(PropertyBuilder property, Long logId)
+	public void delete(PropertyBuilder property, Long logId)
 			throws OlogException;
 
 	/**
@@ -305,7 +438,7 @@ public interface OlogClient {
 	 * @param logIds
 	 * @throws OlogException
 	 */
-	public void remove(PropertyBuilder property, Collection<Long> logIds)
+	public void delete(PropertyBuilder property, Collection<Long> logIds)
 			throws OlogException;
 
 	/**
@@ -319,35 +452,6 @@ public interface OlogClient {
 	 *            logId
 	 * @throws OlogException
 	 */
-	public void remove(String fileName, Long logId);
-
-	/**
-	 * Update logbooks and tags of existing log <tt>log</tt>
-	 * 
-	 * @param log
-	 * @throws OlogException
-	 */
-	public void updateLog(LogBuilder log) throws OlogException;
-
-	/**
-	 * Add tag <tt>tag</tt> to log <tt>logId</tt> and remove the tag from all
-	 * other logs
-	 * 
-	 * @param tag
-	 * @param logId
-	 * @throws OlogException
-	 */
-	public void set(TagBuilder tag, Long logId) throws OlogException;
-
-	/**
-	 * Set tag <tt>tag</tt> on the set of logs {logs} and remove it from all
-	 * others
-	 * 
-	 * @param tag
-	 *            tag builder
-	 * @param logIds
-	 *            collection of log ids
-	 */
-	public void set(TagBuilder tag, Collection<Long> logIds);
+	public void delete(String fileName, Long logId) throws OlogException;
 
 }
