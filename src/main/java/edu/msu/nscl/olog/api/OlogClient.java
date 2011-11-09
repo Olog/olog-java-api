@@ -77,20 +77,24 @@ public interface OlogClient {
 	 * Set a single log <tt>log</tt>, if the log already exists it is replaced.
 	 * Destructive operation
 	 * 
+	 * TODO: (shroffk) should there be anything returned?
+	 * 
 	 * @param log
 	 *            the log to be added
 	 * @throws OlogException
 	 */
-	public Log set(LogBuilder log) throws OlogException;
+	public void set(LogBuilder log) throws OlogException;
 
 	/**
 	 * Set a set of logs Destructive operation.
+	 * 
+	 * TODO: (shroffk) should anything be returned? and should be returned from the service?
 	 * 
 	 * @param logs
 	 *            collection of logs to be added
 	 * @throws OlogException
 	 */
-	public Collection<Log> set(Collection<LogBuilder> logs)
+	public void set(Collection<LogBuilder> logs)
 			throws OlogException;
 
 	/**

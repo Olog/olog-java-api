@@ -56,14 +56,14 @@ public class Query {
 			client.set(tagStar);
 
 			// Add the logs
-			returnLogs.add(client.set(log("pvk:01<first>").description("some details").level("Info").in(
-					book).in(book2).with(tagA)));
-			returnLogs.add(client.set(log("pvk:02<second>").description("some details").level("Info").in(
-					book).with(tagA).with(tagB)));
-			returnLogs.add(client.set(log("pvk:03<second>").description("some details").level("Info").in(
-					book).with(tagB).with(tagC)));
-			returnLogs.add(client.set(log("distinctName").description("some details").level("Info").in(
-					book).with(tagStar)));
+//			returnLogs.add(client.set(log("pvk:01<first>").description("some details").level("Info").in(
+//					book).in(book2).with(tagA)));
+//			returnLogs.add(client.set(log("pvk:02<second>").description("some details").level("Info").in(
+//					book).with(tagA).with(tagB)));
+//			returnLogs.add(client.set(log("pvk:03<second>").description("some details").level("Info").in(
+//					book).with(tagB).with(tagC)));
+//			returnLogs.add(client.set(log("distinctName").description("some details").level("Info").in(
+//					book).with(tagStar)));
 		} catch (OlogException e) {
 			fail(e.getMessage());
 		}

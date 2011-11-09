@@ -109,5 +109,14 @@ public class LogUtil {
 		}
 		return Collections.unmodifiableCollection(logs);
 	}
+	
+	static Collection<Log> toLogs(XmlLogs xmlLogs){
+		Collection<Log> logs = new HashSet<Log>();
+		for (XmlLog xmlLog : xmlLogs.getLogs()) {
+			logs.add(new Log(xmlLog));
+		}
+		return logs;
+	}
+	
 
 }

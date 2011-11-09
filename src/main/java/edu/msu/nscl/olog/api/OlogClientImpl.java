@@ -13,6 +13,7 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.TimeUnit;
+import java.util.logging.Logger;
 
 import javax.net.ssl.HostnameVerifier;
 import javax.net.ssl.SSLContext;
@@ -29,6 +30,7 @@ import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.jackrabbit.webdav.DavException;
 
 import com.sun.jersey.api.client.Client;
+import com.sun.jersey.api.client.ClientResponse;
 import com.sun.jersey.api.client.UniformInterfaceException;
 import com.sun.jersey.api.client.WebResource;
 import com.sun.jersey.api.client.config.ClientConfig;
@@ -281,8 +283,8 @@ public class OlogClientImpl implements OlogClient {
 		if (withHTTPBasicAuthFilter) {
 			client.addFilter(new HTTPBasicAuthFilter(username, password));
 		}
-		// client.addFilter(new
-		// RawLoggingFilter(Logger.getLogger(RawLoggingFilter.class.getName())));
+		client.addFilter(new RawLoggingFilter(Logger
+				.getLogger(OlogClientImpl.class.getName())));
 		service = client.resource(UriBuilder.fromUri(ologURI).build());
 
 		ApacheHttpClient client2Apache = ApacheHttpClient.create(config);
@@ -336,6 +338,7 @@ public class OlogClientImpl implements OlogClient {
 		});
 	}
 
+	@SuppressWarnings("deprecation")
 	@Override
 	public Collection<Level> listLevels() throws OlogException {
 		// TODO Auto-generated method stub
@@ -344,8 +347,15 @@ public class OlogClientImpl implements OlogClient {
 
 	@Override
 	public Collection<Log> listLogs() {
-		// TODO Auto-generated method stub
-		return null;
+		return wrappedSubmit(new Callable<Collection<Log>>() {
+			@Override
+			public Collection<Log> call() throws Exception {
+				XmlLogs xmlLogs = service.path("logs")
+						.accept(MediaType.APPLICATION_XML)
+						.accept(MediaType.APPLICATION_JSON).get(XmlLogs.class);
+				return LogUtil.toLogs(xmlLogs);
+			}
+		});
 	}
 
 	@Override
@@ -362,16 +372,51 @@ public class OlogClientImpl implements OlogClient {
 	}
 
 	@Override
-	public Log set(LogBuilder log) throws OlogException {
-		// TODO Auto-generated method stub
-		return null;
+	public void set(LogBuilder log) throws OlogException {
+		final XmlLog xmlLog = log.toXml();
+		wrappedSubmit(new Runnable() {
+			@Override
+			public void run() {
+				@SuppressWarnings("unused")
+				ClientResponse response = service.path("logs")
+						.path(String.valueOf(xmlLog.getId()))
+						.accept(MediaType.APPLICATION_XML)
+						.accept(MediaType.APPLICATION_JSON)
+						.put(ClientResponse.class, xmlLog);
+			}
+		});
+		// wrappedSubmit(new SetLogs(log));
 	}
 
 	@Override
-	public Collection<Log> set(Collection<LogBuilder> logs)
-			throws OlogException {
-		// TODO Auto-generated method stub
-		return null;
+	public void set(Collection<LogBuilder> logs) throws OlogException {
+		wrappedSubmit(new SetLogs(logs));
+	}
+
+	private class SetLogs implements Runnable {
+		private Collection<LogBuilder> logs;
+
+		public SetLogs(LogBuilder log) {
+			this.logs = new ArrayList<LogBuilder>();
+			this.logs.add(log);
+		}
+
+		public SetLogs(Collection<LogBuilder> logs) {
+			this.logs = new ArrayList<LogBuilder>(logs);
+		}
+
+		@Override
+		public void run() {
+			XmlLogs xmlLogs = new XmlLogs();
+			for (LogBuilder log : logs) {
+				xmlLogs.getLogs().add(log.toXml());
+			}
+			@SuppressWarnings("unused")
+			ClientResponse response = service.path("logs")
+					.accept(MediaType.APPLICATION_XML)
+					.accept(MediaType.APPLICATION_JSON)
+					.post(ClientResponse.class, xmlLogs);
+		}
 	}
 
 	@Override
@@ -579,14 +624,20 @@ public class OlogClientImpl implements OlogClient {
 
 	@Override
 	public void delete(LogBuilder log) throws OlogException {
-		// TODO Auto-generated method stub
-
+		delete(log.build().getId());
 	}
 
 	@Override
 	public void delete(Long logId) throws OlogException {
-		// TODO Auto-generated method stub
-
+		final Long deleteLogId = logId;
+		wrappedSubmit(new Runnable() {
+			@Override
+			public void run() {
+				service.path("logs").path(String.valueOf(deleteLogId))
+						.accept(MediaType.APPLICATION_XML)
+						.accept(MediaType.APPLICATION_JSON).delete();
+			}
+		});
 	}
 
 	@Override
