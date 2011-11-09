@@ -14,7 +14,7 @@ import org.junit.Test;
 
 import edu.msu.nscl.olog.api.OlogClientImpl.OlogClientBuilder;
 
-public class BenchmarkTest {
+public class Benchmark {
 
 	private static Collection<LogBuilder> logs = new HashSet<LogBuilder>();
 	private static Collection<Log> returnLogs = new HashSet<Log>();
@@ -26,11 +26,11 @@ public class BenchmarkTest {
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		// create a table of 2000 logs
-		originalLogCount = client.getAllLogs().size();
+		originalLogCount = client.listLogs().size();
 		// Add the tags and the logbooks to be used.
-		client.add(logbook("logbook").owner("me"));
-		client.add(tag("tagA").state("boss"));
-		client.add(tag("tagB").state("boss"));
+		client.set(logbook("logbook").owner("me"));
+		client.set(tag("tagA").state("boss"));
+		client.set(tag("tagB").state("boss"));
 
 		for (int i = 0; i < 2000; i++) {
 			String logName = "2000";
@@ -45,7 +45,7 @@ public class BenchmarkTest {
 		}
 		// Add all the logs;
 		try {
-			returnLogs = client.add(logs);
+			returnLogs = client.update(logs);
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
@@ -54,8 +54,8 @@ public class BenchmarkTest {
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
 
-		client.remove(returnLogs);
-		assertTrue(client.getAllLogs().size() == originalLogCount);
+		client.delete(returnLogs);
+		assertTrue(client.listLogs().size() == originalLogCount);
 	}
 
 	private static String getSubject(int i) {

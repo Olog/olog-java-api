@@ -23,7 +23,7 @@ import edu.msu.nscl.olog.api.OlogClientImpl.OlogClientBuilder;
 
 //multivalue map
 
-public class QueryTest {
+public class Query {
 
         private static Collection<Log> returnLogs = new HashSet<Log>();
 	private static int initialLogCount;
@@ -46,23 +46,23 @@ public class QueryTest {
 	public static void populateLogs() {
 
 		try {
-			initialLogCount = client.getAllLogs().size();
+			initialLogCount = client.listLogs().size();
 			// Add the tags and logbooks.
-			client.add(book.owner("me"));
-			client.add(book2.owner("me"));
-			client.add(tagA);
-			client.add(tagB);
-			client.add(tagC);
-			client.add(tagStar);
+			client.set(book.owner("me"));
+			client.set(book2.owner("me"));
+			client.set(tagA);
+			client.set(tagB);
+			client.set(tagC);
+			client.set(tagStar);
 
 			// Add the logs
-			returnLogs.add(client.add(log("pvk:01<first>").description("some details").level("Info").in(
+			returnLogs.add(client.set(log("pvk:01<first>").description("some details").level("Info").in(
 					book).in(book2).with(tagA)));
-			returnLogs.add(client.add(log("pvk:02<second>").description("some details").level("Info").in(
+			returnLogs.add(client.set(log("pvk:02<second>").description("some details").level("Info").in(
 					book).with(tagA).with(tagB)));
-			returnLogs.add(client.add(log("pvk:03<second>").description("some details").level("Info").in(
+			returnLogs.add(client.set(log("pvk:03<second>").description("some details").level("Info").in(
 					book).with(tagB).with(tagC)));
-			returnLogs.add(client.add(log("distinctName").description("some details").level("Info").in(
+			returnLogs.add(client.set(log("distinctName").description("some details").level("Info").in(
 					book).with(tagStar)));
 		} catch (OlogException e) {
 			fail(e.getMessage());
@@ -77,7 +77,7 @@ public class QueryTest {
 		Map<String, String> map = new Hashtable<String, String>();
 		map.put("search", "*");
 		Collection<Log> logs = client.findLogs(map);
-		assertTrue(client.getAllLogs().size() == logs.size());
+		assertTrue(client.listLogs().size() == logs.size());
 	}
 
 	/**
@@ -145,7 +145,7 @@ public class QueryTest {
 
 	@AfterClass
 	public static void cleanup() {
-		client.remove(returnLogs);
+		client.delete(returnLogs);
 		// clean up all the tags and logbooks
 		client.deleteLogbook(book.build().getName());
 		client.deleteLogbook(book2.toXml().getName());
@@ -153,6 +153,6 @@ public class QueryTest {
 		client.deleteTag(tagB.toXml().getName());
 		client.deleteTag(tagC.toXml().getName());
 		client.deleteTag(tagStar.toXml().getName());
-		assertTrue(client.getAllLogs().size() == initialLogCount);
+		assertTrue(client.listLogs().size() == initialLogCount);
 	}
 }

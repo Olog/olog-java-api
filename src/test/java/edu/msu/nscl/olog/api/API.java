@@ -28,7 +28,7 @@ import edu.msu.nscl.olog.api.OlogClientImpl.OlogClientBuilder;
 import java.io.File;
 import java.io.FileWriter;
 
-public class APITest {
+public class API {
 
     private static OlogClient client;
     private static int logCount;
@@ -38,7 +38,7 @@ public class APITest {
     @BeforeClass
     public static void beforeTests() {
 		client = OlogClientBuilder.serviceURL().withHTTPAuthentication(true).create();
-        logCount = client.getAllLogs().size();
+        logCount = client.listLogs().size();
     }
 
     @Test
@@ -62,15 +62,15 @@ public class APITest {
         String owner = "me";
         Log returnLog = null;
         try {
-            client.add(logbook("TestLogbook").owner(owner));
+            client.update(logbook("TestLogbook").owner(owner));
             // Add a log
-            returnLog = client.add(log(logSubject).description("TestDetail").level("Info").in(logbook("TestLogbook").owner(owner)));
+            returnLog = client.update(log(logSubject).description("TestDetail").level("Info").in(logbook("TestLogbook").owner(owner)));
             client.getLog(returnLog.getId());
             // Remove a log
-            client.remove(returnLog.getId());
-            assertTrue(!client.getAllLogs().contains(returnLog));
+            client.delete(returnLog.getId());
+            assertTrue(!client.listLogs().contains(returnLog));
             assertTrue("CleanUp failed",
-                    client.getAllLogs().size() == logCount);
+                    client.listLogs().size() == logCount);
         } catch (OlogException e) {
             if (e.getStatus().equals(Status.NOT_FOUND)) {
                 fail("Log not added. " + returnLog.toString() + e.getMessage());
@@ -95,15 +95,15 @@ public class APITest {
         logs.add(log("first").description("TestDescription").level("Info").in(logbook("TestLogbook").owner(owner)));
         logs.add(log("second").description("TestDescription").level("Info").in(logbook("TestLogbook").owner(owner)));
         try {
-            client.add(logbook("TestLogbook").owner(owner));
-            returnLogs = client.add(logs);
+            client.update(logbook("TestLogbook").owner(owner));
+            returnLogs = client.update(logs);
             // fail("Logs not added: " + returnLogs.toString()+"\n contained:\n"+client.getAllLogs().toString());
-            assertTrue(client.getAllLogs().containsAll(returnLogs));
+            assertTrue(client.listLogs().containsAll(returnLogs));
         } finally {
-            client.remove(returnLogs);
+            client.delete(returnLogs);
             client.deleteLogbook("TestLogbook");
             assertTrue("CleanUp failed",
-                    client.getAllLogs().size() == logCount);
+                    client.listLogs().size() == logCount);
         }
     }
 
@@ -120,15 +120,15 @@ public class APITest {
         TagBuilder testTag2 = tag("someTag2");
         Log returnLog = null;
         try {
-            client.add(logbook("TestLogbook").owner(owner));
+            client.update(logbook("TestLogbook").owner(owner));
             // ensure that the tag exist.
-            client.add(testTag1);
-            client.add(testTag2);
-            returnLog = client.add(testLog.with(testTag1));
+            client.update(testTag1);
+            client.update(testTag2);
+            returnLog = client.update(testLog.with(testTag1));
             // check for no initial logbooks or tags
             assertTrue(returnLog.getTags().contains(testTag1.build()));
             // uses the POST method
-            client.updateLog(log(returnLog).with(testTag2));
+            client.update(log(returnLog).with(testTag2));
             assertTrue(client.getLog(returnLog.getId()).getTags().contains(testTag1.build()));
             assertTrue(client.getLog(returnLog.getId()).getTags().contains(testTag2.build()));
         } finally {
@@ -136,9 +136,9 @@ public class APITest {
                 client.deleteLogbook("TestLogbook");
                 client.deleteTag("someTag1");
                 client.deleteTag("someTag2");
-                client.remove(returnLog.getId());
+                client.delete(returnLog.getId());
                 assertTrue("CleanUp failed",
-                        client.getAllLogs().size() == logCount);
+                        client.listLogs().size() == logCount);
             }
         }
 
@@ -154,18 +154,18 @@ public class APITest {
         LogBuilder newLog = log("old").description("some details2").level("Info").in(logbook("TestLogbook").owner(owner)).with(tag("newTag"));
         Log returnLogOld = null;
         Log returnLogNew = null;
-        client.add(logbook("TestLogbook").owner(owner));
-        client.add(tag("oldTag"));
-        client.add(tag("newTag"));
+        client.update(logbook("TestLogbook").owner(owner));
+        client.update(tag("oldTag"));
+        client.update(tag("newTag"));
         try {
-            returnLogOld = client.add(oldLog);
+            returnLogOld = client.update(oldLog);
 
             assertTrue(client.findLogsByTag("oldTag").contains(
                     returnLogOld));
             XmlLog xmlLog = newLog.toXml();
             xmlLog.setId(returnLogOld.getId());
             newLog = log(new Log(xmlLog));
-            client.add(newLog);
+            client.update(newLog);
             returnLogNew = client.getLog(newLog.toXml().getId());
             assertTrue(!client.findLogsByTag("oldTag").contains(
                     returnLogNew));
@@ -176,8 +176,8 @@ public class APITest {
                 client.deleteLogbook("TestLogbook");
                 client.deleteTag("oldTag");
                 client.deleteTag("newTag");
-                client.remove(returnLogOld.getId());
-                client.remove(returnLogNew.getId());
+                client.delete(returnLogOld.getId());
+                client.delete(returnLogNew.getId());
             }
         }
     }
@@ -192,21 +192,21 @@ public class APITest {
         String owner = "me";
         Log returnLog = null;
         try {
-            client.add(logbook("TestLogbook").owner(owner));
-            client.add(tag(tagName, "tagOwner"));
-            returnLog = client.add(log(logSubject).description("TestDetail").level("Info").in(logbook("TestLogbook").owner(owner)));
+            client.update(logbook("TestLogbook").owner(owner));
+            client.update(tag(tagName, "tagOwner"));
+            returnLog = client.update(log(logSubject).description("TestDetail").level("Info").in(logbook("TestLogbook").owner(owner)));
             assertTrue(!getTagNames(client.getLog(returnLog.getId())).contains(
                     tagName));
-            client.add(tag(tagName, "tagOwner"), returnLog.getId());
+            client.update(tag(tagName, "tagOwner"), returnLog.getId());
             assertTrue(getTagNames(client.getLog(returnLog.getId())).contains(tagName));
-            client.remove(tag(tagName), returnLog.getId());
+            client.delete(tag(tagName), returnLog.getId());
             assertTrue(!getTagNames(client.getLog(returnLog.getId())).contains(
                     tagName));
         } finally {
             if (returnLog != null) {
                 client.deleteLogbook("TestLogbook");
-                client.remove(returnLog.getId());
-                assertTrue("CleanUp failed", !client.getAllLogs().contains(
+                client.delete(returnLog.getId());
+                assertTrue("CleanUp failed", !client.listLogs().contains(
                         returnLog));
             }
         }
@@ -230,16 +230,16 @@ public class APITest {
         logSet.add(log("third").description("TestDetail").level("Info").in(logbook("TestLogbook").owner(owner)));
 
         try {
-            client.add(logbook("TestLogbook").owner(owner));
-            client.add(tag);
-            returnLogSubSet = client.add(logSubSet);
-            _returnLogSet = client.add(logSet);
+            client.update(logbook("TestLogbook").owner(owner));
+            client.update(tag);
+            returnLogSubSet = client.update(logSubSet);
+            _returnLogSet = client.update(logSet);
             returnLogSet.addAll(_returnLogSet);
             returnLogSet.addAll(returnLogSubSet);
 
-            client.add(tag, getLogIds(returnLogSet));
+            client.update(tag, getLogIds(returnLogSet));
             assertTrue(client.findLogsByTag(tag.build().getName()).containsAll(returnLogSet));
-            client.remove(tag, getLogIds(returnLogSubSet));
+            client.delete(tag, getLogIds(returnLogSubSet));
             Collection<Log> diffSet = new HashSet<Log>(
                     returnLogSet);
             diffSet.removeAll(returnLogSubSet);
@@ -249,7 +249,7 @@ public class APITest {
             client.deleteLogbook("TestLogbook");
             client.deleteTag("tag");
             // this method is not atomic
-            client.remove(returnLogSet);
+            client.delete(returnLogSet);
         }
 
     }
@@ -266,17 +266,17 @@ public class APITest {
         logs.add(log("first").description("TestDetail").level("Info").in(logbook("TestLogbook").owner(owner)));
         logs.add(log("second").description("TestDetail").level("Info").in(logbook("TestLogbook").owner(owner)));
         try {
-            client.add(logbook("TestLogbook").owner(owner));
-            returnLogs = client.add(logs);
+            client.update(logbook("TestLogbook").owner(owner));
+            returnLogs = client.update(logs);
             TagBuilder tag = tag("TestTag");
-            client.add(tag);
-            client.add(tag, getLogIds(returnLogs));
+            client.update(tag);
+            client.update(tag, getLogIds(returnLogs));
             assertTrue(client.findLogsByTag("TestTag").size() > 0);
             client.deleteTag("TestTag");
             assertTrue(client.findLogsByTag("TestTag").isEmpty());
         } finally {
             client.deleteLogbook("TestLogbook");
-            client.remove(returnLogs);
+            client.delete(returnLogs);
         }
     }
 
@@ -298,12 +298,12 @@ public class APITest {
         TagBuilder tag = tag("TestTag");
 
         try {
-            client.add(logbook("TestLogbook").owner(owner));
-            returnLogSet2 = client.add(logSet2);
-            returnLogSet1 = client.add(logSet1);
-            client.add(tag);
+            client.update(logbook("TestLogbook").owner(owner));
+            returnLogSet2 = client.update(logSet2);
+            returnLogSet1 = client.update(logSet1);
+            client.update(tag);
             // add tag to set1
-            client.add(tag, getLogIds(returnLogSet1));
+            client.update(tag, getLogIds(returnLogSet1));
             assertTrue(client.findLogsByTag(tag.toXml().getName()).containsAll(returnLogSet1));
             // set the tag on log first and remove it from every other
             // log
@@ -318,8 +318,8 @@ public class APITest {
         } finally {
             client.deleteLogbook("TestLogbook");
             client.deleteTag("TestTag");
-            client.remove(returnLogSet1);
-            client.remove(returnLogSet2);
+            client.delete(returnLogSet1);
+            client.delete(returnLogSet2);
         }
 
     }
@@ -335,19 +335,19 @@ public class APITest {
         Log returnLog = null;
 
         try {
-            client.add(logbook("TestLogbook").owner(owner));
-            returnLog = client.add(testLog);
-            client.add(logbook);
-            client.add(logbook, returnLog.getId());
+            client.update(logbook("TestLogbook").owner(owner));
+            returnLog = client.update(testLog);
+            client.update(logbook);
+            client.update(logbook, returnLog.getId());
             Collection<Log> result = client.findLogsByLogbook(logbook.build().getName());
             assertTrue(result.contains(returnLog));
-            client.remove(logbook, returnLog.getId());
+            client.delete(logbook, returnLog.getId());
             assertTrue(client.findLogsByLogbook(logbook.toXml().getName()).isEmpty());
         } finally {
             if (returnLog != null) {
                 client.deleteLogbook("TestLogbook");
                 client.deleteLogbook("TestLogbook2");
-                client.remove(returnLog.getId());
+                client.delete(returnLog.getId());
             }
         }
 
@@ -365,21 +365,21 @@ public class APITest {
         logs.add(log("second").description("some details").level("Info").in(logbook("TestLogbook").owner(owner)));
         LogbookBuilder logbook = logbook("TestLogbook2").owner(owner);
         try {
-            client.add(logbook("TestLogbook").owner(owner));
-            returnLogs = client.add(logs);
-            client.add(logbook);
+            client.update(logbook("TestLogbook").owner(owner));
+            returnLogs = client.update(logs);
+            client.update(logbook);
             int initialCount = client.findLogsByLogbook(
                     logbook.toXml().getName()).size();
             // TODO: problem here; version changes, and I currently use version in equal override
-            client.add(logbook, getLogIds(returnLogs));
+            client.update(logbook, getLogIds(returnLogs));
             assertTrue(client.findLogsByLogbook(logbook.toXml().getName()).containsAll(returnLogs));
-            client.remove(logbook, getLogIds(returnLogs));
+            client.delete(logbook, getLogIds(returnLogs));
             assertTrue(client.findLogsByLogbook(logbook.toXml().getName()).size() == initialCount);
         } finally {
             if (returnLogs != null) {
                 client.deleteLogbook("TestLogbook");
                 client.deleteLogbook("TestLogbook2");
-                client.remove(returnLogs);
+                client.delete(returnLogs);
             }
         }
     }
@@ -396,17 +396,17 @@ public class APITest {
         logs.add(log("second").description("some details").level("Info").in(logbook("TestLogbook").owner(owner)));
         LogbookBuilder logbook = logbook("DeleteLogbook").owner(owner);
         try {
-            client.add(logbook("TestLogbook").owner(owner));
-            returnLogs = client.add(logs);
-            client.add(logbook);
-            client.add(logbook, getLogIds(returnLogs));
+            client.update(logbook("TestLogbook").owner(owner));
+            returnLogs = client.update(logs);
+            client.update(logbook);
+            client.update(logbook, getLogIds(returnLogs));
             assertTrue(client.findLogsByLogbook(logbook.toXml().getName()).size() == 2);
             client.deleteLogbook(logbook.toXml().getName());
             assertTrue(client.findLogsByLogbook(logbook.toXml().getName()).isEmpty());
         } finally {
             if (returnLogs != null) {
                 client.deleteLogbook("TestLogbook");
-                client.remove(returnLogs);
+                client.delete(returnLogs);
             }
         }
     }
@@ -420,22 +420,22 @@ public class APITest {
         Log returnLog = null;
         Log result = null;
         try {
-            client.add(logbook("TestLogbook").owner(owner));
-            client.add(logbook("existingLogbook").owner(owner));
-            client.add(tag("existingTag"));
+            client.update(logbook("TestLogbook").owner(owner));
+            client.update(logbook("existingLogbook").owner(owner));
+            client.update(tag("existingTag"));
             LogBuilder testLog = log("testLog").description("some details").level("Info").in(logbook("TestLogbook").owner(owner)).with(tag("existingTag")).in(logbook("existingLogbook"));
-            returnLog = client.add(testLog);
+            returnLog = client.update(testLog);
             result = (client.getLog(returnLog.getId()));
             assertTrue(result.getTags().contains(
                     tag("existingTag").build()));
             assertTrue(result.getLogbooks().contains(
                     logbook("existingLogbook").build()));
 
-            client.add(tag("newTag"));
-            client.add(tag("newTag"), result.getId());
+            client.update(tag("newTag"));
+            client.update(tag("newTag"), result.getId());
 
-            client.add(logbook("newLogbook").owner(owner));
-            client.add(logbook("newLogbook"), result.getId());
+            client.update(logbook("newLogbook").owner(owner));
+            client.update(logbook("newLogbook"), result.getId());
 
             result = (client.getLog(returnLog.getId()));
             assertTrue(result.getTags().contains(
@@ -453,7 +453,7 @@ public class APITest {
                 client.deleteLogbook("newLogbook");
                 client.deleteTag("existingTag");
                 client.deleteTag("newTag");
-                client.remove(returnLog.getId());
+                client.delete(returnLog.getId());
             }
         }
     }
@@ -471,14 +471,14 @@ public class APITest {
                 fwrite.flush();
                 fwrite.close();
             }
-            returnLog = client.add(log("attachment test").description("TestDetail").level("Info").in(logbook("TestLogbook").owner(owner)));
+            returnLog = client.update(log("attachment test").description("TestDetail").level("Info").in(logbook("TestLogbook").owner(owner)));
 
             client.add(f, returnLog.getId());
             assertTrue(client.getAttachments(returnLog.getId()).size() == 1);
         } finally {
             if (returnLog != null) {
-                client.remove(returnLog.getId());
-                            client.remove("file.txt",returnLog.getId());                         
+                client.delete(returnLog.getId());
+                            client.delete("file.txt",returnLog.getId());                         
             }
             if (f.exists()) {
                 boolean success = f.delete();
@@ -494,14 +494,14 @@ public class APITest {
         File f = null;
         try {
             f = new File("the_homercar.jpg");
-            returnLog = client.add(log("attachment test").description("TestDetail").level("Info").in(logbook("TestLogbook").owner(owner)));
+            returnLog = client.update(log("attachment test").description("TestDetail").level("Info").in(logbook("TestLogbook").owner(owner)));
 
             client.add(f, returnLog.getId());
             assertTrue(client.getAttachments(returnLog.getId()).size() == 1);
         } finally {
             if (returnLog != null) {
-                client.remove(returnLog.getId());
-                            client.remove("the_homercar.jpg",returnLog.getId());
+                client.delete(returnLog.getId());
+                            client.delete("the_homercar.jpg",returnLog.getId());
             }
         }
     }
@@ -518,20 +518,20 @@ public class APITest {
         Log returnLog = null;
         PropertyBuilder prop = property(propertyName, propertyValue);
         try {
-            client.add(logbook("TestLogbook").owner(owner));
-            returnLog = client.add(log(logSubject).description("TestDetail").level("Info").in(logbook("TestLogbook").owner(owner)));
+            client.update(logbook("TestLogbook").owner(owner));
+            returnLog = client.update(log(logSubject).description("TestDetail").level("Info").in(logbook("TestLogbook").owner(owner)));
             assertTrue(!((client.getLog(returnLog.getId()).getProperties()).contains(
                     prop.build())));
-            client.add(prop, returnLog.getId());
+            client.update(prop, returnLog.getId());
             assertTrue((client.getLog(returnLog.getId()).getProperties()).contains(prop.build()));
-            client.remove(property(propertyName), returnLog.getId());
+            client.delete(property(propertyName), returnLog.getId());
             assertTrue(!(client.getLog(returnLog.getId()).getProperties()).contains(
                     prop.build()));
         } finally {
             if (returnLog != null) {
                 client.deleteLogbook("TestLogbook");
-                client.remove(returnLog.getId());
-                assertTrue("CleanUp failed", !client.getAllLogs().contains(
+                client.delete(returnLog.getId());
+                assertTrue("CleanUp failed", !client.listLogs().contains(
                         returnLog));
             }
         }
@@ -541,18 +541,18 @@ public class APITest {
     public void getAllLogbooks() {
         String owner = "me";
         String logbookName = "TestLogbook";
-        client.add(logbook(logbookName).owner(owner));
-        assertTrue(client.getAllLogbooks().contains(logbookName));
+        client.update(logbook(logbookName).owner(owner));
+        assertTrue(client.listLogbooks().contains(logbookName));
         client.deleteLogbook(logbookName);
-        assertTrue("TestLogbook clean up failed", !client.getAllLogbooks().contains(logbookName));
+        assertTrue("TestLogbook clean up failed", !client.listLogbooks().contains(logbookName));
     }
 
     @Test
     public void getAllTags() {
-        client.add(tag("TestTag"));
-        assertTrue(client.getAllTags().contains("TestTag"));
+        client.update(tag("TestTag"));
+        assertTrue(client.listTags().contains("TestTag"));
         client.deleteTag("TestTag");
-        assertTrue("TestTag clean up failed", !client.getAllTags().contains(
+        assertTrue("TestTag clean up failed", !client.listTags().contains(
                 "TestTag"));
     }
 
