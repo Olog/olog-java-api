@@ -92,6 +92,21 @@ public class LogUtil {
 		}
 		return logIds;
 	}
+	
+	/**
+	 * Returns all the log subjects
+	 * 
+	 * @param logs
+	 * @return long collection of log subjects
+	 */
+	public static Collection<String> getLogSubjects(
+			Collection<Log> logs) {
+		Collection<String> logSubject = new HashSet<String>();
+		for (Log log : logs) {
+			logSubject.add(log.getSubject());
+		}
+		return logSubject;
+	}
 
 	/**
 	 * TODO evaluate need/correctness
