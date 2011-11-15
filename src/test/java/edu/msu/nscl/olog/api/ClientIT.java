@@ -1,24 +1,26 @@
 package edu.msu.nscl.olog.api;
 
-import static org.junit.Assert.*;
+import static edu.msu.nscl.olog.api.LogBuilder.log;
+import static edu.msu.nscl.olog.api.LogUtil.getLogSubjects;
+import static edu.msu.nscl.olog.api.LogUtil.toLogs;
+import static edu.msu.nscl.olog.api.LogbookBuilder.logbook;
+import static edu.msu.nscl.olog.api.TagBuilder.tag;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
 
 import java.util.ArrayList;
 import java.util.Collection;
-
-import javax.security.auth.login.FailedLoginException;
+import java.util.HashMap;
+import java.util.Map;
 
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.junit.internal.runners.statements.Fail;
 
 import edu.msu.nscl.olog.api.OlogClientImpl.OlogClientBuilder;
-import static edu.msu.nscl.olog.api.LogbookBuilder.*;
-import static edu.msu.nscl.olog.api.TagBuilder.*;
-import static edu.msu.nscl.olog.api.LogBuilder.*;
-import static edu.msu.nscl.olog.api.LogUtil.*;
 
 public class ClientIT {
 
@@ -28,6 +30,8 @@ public class ClientIT {
 	private static String logbookOwner;
 	private static String tagOwner;
 	private static String propertyOwner;
+
+	private static LogbookBuilder defaultLogBook;
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
@@ -39,10 +43,15 @@ public class ClientIT {
 		logbookOwner = "me";
 		tagOwner = "me";
 		propertyOwner = "me";
+
+		// Add a default logbook
+		defaultLogBook = logbook("DefaultLogBook").owner(logbookOwner);
+		client.set(defaultLogBook);
 	}
 
 	@AfterClass
 	public static void tearDownAfterClass() throws Exception {
+		client.deleteLogbook(defaultLogBook.build().getName());
 	}
 
 	@Before
@@ -101,23 +110,31 @@ public class ClientIT {
 	/**
 	 * create(set), list, delete a single log
 	 */
-	// @Test
+	@Test
 	public void logSimpleTest() {
 		LogBuilder log = log("testLog").description("some details")
-				.level("Info").id(1234L);
+				.level("Info").in(defaultLogBook);
+		Collection<Log> result = null;
 		try {
 			// set a log
-			// list all log
 			client.set(log);
+			// list all logs
+			result = client.listLogs();
 			// assertTrue("failed to set the testLog",
 			// client.listLogs().contains(log.build()));
+			assertTrue("Failed to set the testLog", getLogSubjects(result)
+					.contains(log.build().getSubject()));
+
 		} catch (Exception e) {
 			fail(e.getCause().toString());
 		} finally {
 			// delete a log
-			client.delete(log);
-			assertFalse("failed to clean the testLog", client.listLogs()
-					.contains(log.build()));
+			for (Log resultLog : result) {
+				client.delete(log(resultLog));
+			}
+			result = client.listLogs();
+			assertFalse("Failed to clean up the testLog",
+					getLogSubjects(result).contains(log.build().getSubject()));
 		}
 
 	}
@@ -127,11 +144,10 @@ public class ClientIT {
 	 */
 	@Test
 	public void logsSimpleTest() {
-		LogbookBuilder logbook = logbook("TestLogbook").owner(logbookOwner);
 		LogBuilder log1 = log("testLog1").description("some details")
-				.level("Info").in(logbook);
+				.level("Info").in(defaultLogBook);
 		LogBuilder log2 = log("testLog2").description("some details")
-				.level("Info").in(logbook);
+				.level("Info").in(defaultLogBook);
 		Collection<LogBuilder> logs = new ArrayList<LogBuilder>();
 		logs.add(log1);
 		logs.add(log2);
@@ -139,8 +155,6 @@ public class ClientIT {
 		Collection<Log> result = null;
 
 		try {
-			// add the log book
-			client.set(logbook);
 			// set a group of channels
 			client.set(logs);
 			// list all logs
@@ -162,12 +176,10 @@ public class ClientIT {
 			for (Log log : result) {
 				client.delete(log(log));
 			}
-			// clean up logbook
-			client.deleteLogbook(logbook.build().getName());
 			result = client.listLogs();
 			for (Log userLog : LogUtil.toLogs(logs)) {
-				assertFalse("Failed to clean up the group of test logs", client
-						.listLogs().contains(userLog));
+				assertFalse("Failed to clean up the group of test logs",
+						getLogSubjects(result).contains(userLog.getSubject()));
 			}
 		}
 	}
@@ -180,4 +192,39 @@ public class ClientIT {
 			fail("failed to list logs");
 		}
 	}
+
+	// @XmlRootElement
+	// public static class XmlProperty{
+	// public String name;
+	// public Map<String,List<String>> map;
+	//
+	// }
+	//
+	// public void testparsin() throws JAXBException{
+	// MultivaluedMap<String, String> map = new MultivaluedMapImpl();
+	// map.add("ticket", "1234");
+	//
+	// XmlProperty prop = new XmlProperty();
+	// prop.name = "trac";
+	// prop.map = map;
+	//
+	//
+	// JAXBContext context = JAXBContext.newInstance(XmlProperty.class);
+	// Marshaller m = context.createMarshaller();
+	// m.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+	// m.marshal(prop, System.out);
+	//
+	// MultivaluedMap<String, String> map2 = new MultivaluedMapImpl();
+	// map2.add("type", "coupler");
+	// map2.add("fieldname", "coupler1");
+	//
+	// XmlProperty prop2 = new XmlProperty();
+	// prop2.name = "component";
+	// prop2.map = map2;
+	//
+	// JAXBContext context2 = JAXBContext.newInstance(XmlProperty.class);
+	// Marshaller m2 = context.createMarshaller();
+	// m2.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, Boolean.TRUE);
+	// m2.marshal(prop2, System.out);
+	// }
 }

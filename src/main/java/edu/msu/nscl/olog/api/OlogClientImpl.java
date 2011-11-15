@@ -373,19 +373,7 @@ public class OlogClientImpl implements OlogClient {
 
 	@Override
 	public void set(LogBuilder log) throws OlogException {
-		final XmlLog xmlLog = log.toXml();
-		wrappedSubmit(new Runnable() {
-			@Override
-			public void run() {
-				@SuppressWarnings("unused")
-				ClientResponse response = service.path("logs")
-						.path(String.valueOf(xmlLog.getId()))
-						.accept(MediaType.APPLICATION_XML)
-						.accept(MediaType.APPLICATION_JSON)
-						.put(ClientResponse.class, xmlLog);
-			}
-		});
-		// wrappedSubmit(new SetLogs(log));
+		wrappedSubmit(new SetLogs(log));
 	}
 
 	@Override
