@@ -5,8 +5,11 @@ import java.net.URI;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
@@ -38,6 +41,7 @@ import com.sun.jersey.api.client.config.DefaultClientConfig;
 import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 import com.sun.jersey.client.apache.ApacheHttpClient;
 import com.sun.jersey.client.urlconnection.HTTPSProperties;
+import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 import static edu.msu.nscl.olog.api.TagBuilder.*;
 import static edu.msu.nscl.olog.api.LogbookBuilder.*;
@@ -372,16 +376,21 @@ public class OlogClientImpl implements OlogClient {
 	}
 
 	@Override
-	public void set(LogBuilder log) throws OlogException {
-		wrappedSubmit(new SetLogs(log));
+	public Log set(LogBuilder log) throws OlogException {
+		Collection<Log> result = wrappedSubmit(new SetLogs(log));
+		if(result.size() == 1){
+			return result.iterator().next();
+		} else {
+			throw new OlogException();
+		}
 	}
 
 	@Override
-	public void set(Collection<LogBuilder> logs) throws OlogException {
-		wrappedSubmit(new SetLogs(logs));
+	public Collection<Log> set(Collection<LogBuilder> logs) throws OlogException {
+		return wrappedSubmit(new SetLogs(logs));
 	}
 
-	private class SetLogs implements Runnable {
+	private class SetLogs implements Callable<Collection<Log>> {
 		private Collection<LogBuilder> logs;
 
 		public SetLogs(LogBuilder log) {
@@ -394,16 +403,21 @@ public class OlogClientImpl implements OlogClient {
 		}
 
 		@Override
-		public void run() {
+		public Collection<Log> call() throws Exception {
 			XmlLogs xmlLogs = new XmlLogs();
 			for (LogBuilder log : logs) {
 				xmlLogs.getLogs().add(log.toXml());
 			}
-			@SuppressWarnings("unused")
 			ClientResponse response = service.path("logs")
 					.accept(MediaType.APPLICATION_XML)
 					.accept(MediaType.APPLICATION_JSON)
 					.post(ClientResponse.class, xmlLogs);
+			XmlLogs responseLogs = response.getEntity(XmlLogs.class);
+			Collection<Log> returnLogs = new HashSet<Log>();
+			for (XmlLog xmllog : responseLogs.getLogs()) {
+				returnLogs .add(new Log(xmllog));
+			}
+			return Collections.unmodifiableCollection(returnLogs);
 		}
 	}
 
@@ -569,8 +583,7 @@ public class OlogClientImpl implements OlogClient {
 	@Override
 	public Collection<Log> findLogs(Map<String, String> map)
 			throws OlogException {
-		// TODO Auto-generated method stub
-		return null;
+		return wrappedSubmit(new FindLogs(map));
 	}
 
 	@Override
@@ -580,6 +593,45 @@ public class OlogClientImpl implements OlogClient {
 		return null;
 	}
 
+	private class FindLogs implements Callable<Collection<Log>> {
+
+		private final MultivaluedMap<String, String> map;
+
+		public FindLogs(String queryParameter, String pattern) {
+			MultivaluedMap<String, String> mMap = new MultivaluedMapImpl();
+			mMap.putSingle(queryParameter, pattern);
+			this.map = mMap;
+		}
+
+		public FindLogs(MultivaluedMap<String, String> map) {
+			this.map = map;
+		}
+
+		public FindLogs(Map<String, String> map) {
+			MultivaluedMap<String, String> mMap = new MultivaluedMapImpl();
+			Iterator<Map.Entry<String, String>> itr = map.entrySet().iterator();
+			while (itr.hasNext()) {
+				Map.Entry<String, String> entry = itr.next();
+				mMap.put(entry.getKey(),
+						Arrays.asList(entry.getValue().split(",")));
+			}
+			this.map = mMap;
+		}
+
+		@Override
+		public Collection<Log> call() throws Exception {
+			Collection<Log> logs = new HashSet<Log>();
+			XmlLogs xmlLogs = service.path("logs").queryParams(map)
+					.accept(MediaType.APPLICATION_XML)
+					.accept(MediaType.APPLICATION_JSON).get(XmlLogs.class);
+			for (XmlLog xmllog : xmlLogs.getLogs()) {
+				logs.add(new Log(xmllog));
+			}
+			return Collections.unmodifiableCollection(logs);
+		}
+
+	}
+	
 	@Override
 	public void deleteTag(String tag) throws OlogException {
 		final String deleteTag = tag;

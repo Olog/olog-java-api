@@ -78,12 +78,12 @@ public interface OlogClient {
 	 * Destructive operation
 	 * 
 	 * TODO: (shroffk) should there be anything returned?
-	 * 
+	 * XXX: creating logs with same subject allowed?
 	 * @param log
 	 *            the log to be added
 	 * @throws OlogException
 	 */
-	public void set(LogBuilder log) throws OlogException;
+	public Log set(LogBuilder log) throws OlogException;
 
 	/**
 	 * Set a set of logs Destructive operation.
@@ -94,7 +94,7 @@ public interface OlogClient {
 	 *            collection of logs to be added
 	 * @throws OlogException
 	 */
-	public void set(Collection<LogBuilder> logs)
+	public Collection<Log> set(Collection<LogBuilder> logs)
 			throws OlogException;
 
 	/**
