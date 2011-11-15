@@ -12,6 +12,7 @@ import static org.junit.Assert.fail;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.Hashtable;
 import java.util.Map;
 
 import org.junit.After;
@@ -109,38 +110,40 @@ public class ClientIT {
 
 	/**
 	 * create(set), list, delete a single log
+	 * 
+	 * FIXME (shroffk) setlog should return the log id
 	 */
 	@Test
 	public void logSimpleTest() {
 		LogBuilder log = log("testLog").description("some details")
 				.level("Info").in(defaultLogBook);
-		Collection<Log> result = null;
+
+		Map<String, String> map = new Hashtable<String, String>();
+		map.put("search", "testLog");
+		Log result = null;
+
 		try {
 			// set a log
-			client.set(log);
-			// list all logs
-			result = client.listLogs();
-			// assertTrue("failed to set the testLog",
-			// client.listLogs().contains(log.build()));
-			assertTrue("Failed to set the testLog", getLogSubjects(result)
-					.contains(log.build().getSubject()));
-
+			result = client.set(log);
+			// check if the returned id is the same
+			Collection<Log> queryResult = client.findLogs(map);
+			assertTrue("The returned id is not valid",
+					queryResult.contains(result));
 		} catch (Exception e) {
 			fail(e.getCause().toString());
 		} finally {
 			// delete a log
-			for (Log resultLog : result) {
-				client.delete(log(resultLog));
-			}
-			result = client.listLogs();
-			assertFalse("Failed to clean up the testLog",
-					getLogSubjects(result).contains(log.build().getSubject()));
+			client.delete(log(result));
+			assertFalse("Failed to clean up the testLog", client.findLogs(map)
+					.contains(result));
 		}
 
 	}
 
 	/**
 	 * create(set), list and delete a group of logs
+	 * 
+	 * FIXME (shroffk) setlog should return the log id
 	 */
 	@Test
 	public void logsSimpleTest() {
@@ -152,23 +155,23 @@ public class ClientIT {
 		logs.add(log1);
 		logs.add(log2);
 
+		Map<String, String> map = new Hashtable<String, String>();
+		map.put("search", "testLog*");
 		Collection<Log> result = null;
+		Collection<Log> queryResult;
 
 		try {
 			// set a group of channels
 			client.set(logs);
 			// list all logs
 			result = client.listLogs();
-			// can't use the equals cause I don't have the id which is needed
-			// for the equal check.
-			//
-			// assertTrue("Failed to set the group of logs.",
-			// result.containsAll(LogUtil.toLogs(logs)));
-			assertTrue(
-					"Failed to set the group of logs",
-					getLogSubjects(result).containsAll(
-							getLogSubjects(toLogs(logs))));
-
+			queryResult = client.findLogs(map);
+			// check the returned logids match the number expected
+			assertTrue("unexpected return after creation of log entries",
+					queryResult.size() == logs.size());
+			// check if all the logs have been created
+			assertTrue("Failed to set the group of logs",
+					queryResult.containsAll(result));
 		} catch (Exception e) {
 			fail(e.getCause().toString());
 		} finally {
@@ -176,12 +179,21 @@ public class ClientIT {
 			for (Log log : result) {
 				client.delete(log(log));
 			}
-			result = client.listLogs();
-			for (Log userLog : LogUtil.toLogs(logs)) {
+			queryResult = client.findLogs(map);
+			for (Log log : result) {
 				assertFalse("Failed to clean up the group of test logs",
-						getLogSubjects(result).contains(userLog.getSubject()));
+						queryResult.contains(log));
 			}
 		}
+	}
+
+	/**
+	 * Test set on a logbook, the logbook should be added to only those logs
+	 * specified and removed from all others
+	 */
+	@Test
+	public void logbookSetTest() {
+
 	}
 
 	@Test
