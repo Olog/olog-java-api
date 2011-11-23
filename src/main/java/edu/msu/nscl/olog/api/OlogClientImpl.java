@@ -1,5 +1,7 @@
 package edu.msu.nscl.olog.api;
 
+import static edu.msu.nscl.olog.api.TagBuilder.tag;
+
 import java.io.File;
 import java.net.URI;
 import java.security.KeyManagementException;
@@ -42,10 +44,6 @@ import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 import com.sun.jersey.client.apache.ApacheHttpClient;
 import com.sun.jersey.client.urlconnection.HTTPSProperties;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
-
-import static edu.msu.nscl.olog.api.TagBuilder.*;
-import static edu.msu.nscl.olog.api.LogbookBuilder.*;
-import static edu.msu.nscl.olog.api.LogBuilder.*;
 
 /**
  * 
@@ -378,7 +376,7 @@ public class OlogClientImpl implements OlogClient {
 	@Override
 	public Log set(LogBuilder log) throws OlogException {
 		Collection<Log> result = wrappedSubmit(new SetLogs(log));
-		if(result.size() == 1){
+		if (result.size() == 1) {
 			return result.iterator().next();
 		} else {
 			throw new OlogException();
@@ -386,7 +384,8 @@ public class OlogClientImpl implements OlogClient {
 	}
 
 	@Override
-	public Collection<Log> set(Collection<LogBuilder> logs) throws OlogException {
+	public Collection<Log> set(Collection<LogBuilder> logs)
+			throws OlogException {
 		return wrappedSubmit(new SetLogs(logs));
 	}
 
@@ -415,7 +414,7 @@ public class OlogClientImpl implements OlogClient {
 			XmlLogs responseLogs = response.getEntity(XmlLogs.class);
 			Collection<Log> returnLogs = new HashSet<Log>();
 			for (XmlLog xmllog : responseLogs.getLogs()) {
-				returnLogs .add(new Log(xmllog));
+				returnLogs.add(new Log(xmllog));
 			}
 			return Collections.unmodifiableCollection(returnLogs);
 		}
@@ -429,29 +428,50 @@ public class OlogClientImpl implements OlogClient {
 
 	@Override
 	public void set(TagBuilder tag, Long logId) throws OlogException {
-		// TODO Auto-generated method stub
-
+		wrappedSubmit(new SetTag(tag, logId));
 	}
 
 	@Override
 	public void set(TagBuilder tag, Collection<Long> logIds)
 			throws OlogException {
-		// TODO Auto-generated method stub
+		wrappedSubmit(new SetTag(tag, logIds));
 	}
 
 	private class SetTag implements Runnable {
-		private final TagBuilder tag;
+
+		private TagBuilder tag;
+		private Collection<Long> logIds;
 
 		public SetTag(TagBuilder tag) {
-			this.tag = tag(tag.build());
+			this.tag = tag;
+			this.logIds = null;
+		}
+
+		public SetTag(TagBuilder tag, Long LogId) {
+			this.tag = tag;
+			this.logIds = new ArrayList<Long>();
+			this.logIds.add(LogId);
+		}
+
+		public SetTag(TagBuilder tag, Collection<Long> logIds) {
+			this.tag = tag;
+			this.logIds = logIds;
 		}
 
 		@Override
 		public void run() {
 			XmlTag xmlTag = tag.toXml();
+			if (logIds != null && logIds.size() > 0) {
+				XmlLogs xmlLogs = new XmlLogs();
+				for (Long logId : logIds) {
+					xmlLogs.addXmlLog(new XmlLog(logId));
+				}
+				xmlTag.setXmlLogs(xmlLogs);
+			}
 			service.path("tags").path(tag.toXml().getName())
 					.accept(MediaType.APPLICATION_XML).put(xmlTag);
 		}
+
 	}
 
 	@Override
@@ -461,7 +481,9 @@ public class OlogClientImpl implements OlogClient {
 
 	@Override
 	public void set(LogbookBuilder logbook, Long logId) throws OlogException {
-		// TODO Auto-generated method stub
+		XmlLogbook xmlLogbook = logbook.toXml();
+		service.path("logbooks").path(xmlLogbook.getName())
+				.path(String.valueOf(logId)).put(xmlLogbook);
 
 	}
 
@@ -529,8 +551,7 @@ public class OlogClientImpl implements OlogClient {
 
 	@Override
 	public void update(LogbookBuilder logbook, Long logId) throws OlogException {
-		// TODO Auto-generated method stub
-
+		wrappedSubmit(new updateLogBook(logbook, logId));
 	}
 
 	@Override
@@ -538,6 +559,43 @@ public class OlogClientImpl implements OlogClient {
 			throws OlogException {
 		// TODO Auto-generated method stub
 
+	}
+
+	private class updateLogBook implements Runnable {
+		private final LogbookBuilder logBook;
+		private final Collection<Long> logIds;
+
+		public updateLogBook(LogbookBuilder logBook) {
+			this.logBook = logBook;
+			this.logIds = null;
+		}
+
+		public updateLogBook(LogbookBuilder logBook, Long logId) {
+			this.logBook = logBook;
+			Collection<Long> logIds = new HashSet<Long>();
+			logIds.add(logId);
+			this.logIds = logIds;
+		}
+
+		public updateLogBook(LogbookBuilder logBook, Collection<Long> logIds) {
+			this.logBook = logBook;
+			this.logIds = logIds;
+		}
+
+		@Override
+		public void run() {
+			XmlLogbook xmlLogBook = this.logBook.toXml();
+			if (this.logIds != null && this.logIds.size() > 0) {
+				XmlLogs xmlLogs = new XmlLogs();
+				for (Long logId : this.logIds) {
+					xmlLogs.addXmlLog(new XmlLog(logId));
+				}
+				xmlLogBook.setXmlLogs(xmlLogs);
+			}
+			service.path("logbooks").path(xmlLogBook.getName())
+					.accept(MediaType.APPLICATION_JSON)
+					.accept(MediaType.APPLICATION_XML).post(xmlLogBook);
+		}
 	}
 
 	@Override
@@ -631,7 +689,7 @@ public class OlogClientImpl implements OlogClient {
 		}
 
 	}
-	
+
 	@Override
 	public void deleteTag(String tag) throws OlogException {
 		final String deleteTag = tag;
