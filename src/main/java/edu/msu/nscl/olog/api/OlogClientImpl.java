@@ -647,8 +647,7 @@ public class OlogClientImpl implements OlogClient {
 	@Override
 	public Collection<Log> findLogs(MultivaluedMap<String, String> map)
 			throws OlogException {
-		// TODO Auto-generated method stub
-		return null;
+		return wrappedSubmit(new FindLogs(map));
 	}
 
 	private class FindLogs implements Callable<Collection<Log>> {
