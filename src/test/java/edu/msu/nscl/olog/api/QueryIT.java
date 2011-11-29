@@ -233,4 +233,21 @@ public class QueryIT {
 				searchResult.size() == 1 && searchResult.contains(log));
 	}
 
+	/**
+	 * Test findLogsby*() methods
+	 */
+	@Test
+	public void queryTest() {
+		// find by search
+		assertTrue("Failed to query using findbysearch method ", client
+				.findLogsBySearch("pvk_*").size() == 3);
+
+		// find by tag
+		assertTrue("Failed to query using the findbytag method ", client
+				.findLogsByTag(tagA.build().getName()).size() == 2);
+
+		// find by logbook
+		assertTrue("Failed to query using the findbylogbook method", client
+				.findLogsByLogbook(book2.build().getName()).size() == 1);
+	}
 }

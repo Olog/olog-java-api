@@ -621,21 +621,18 @@ public class OlogClientImpl implements OlogClient {
 	@Override
 	public Collection<Log> findLogsBySearch(String pattern)
 			throws OlogException {
-		// TODO Auto-generated method stub
-		return null;
+		return wrappedSubmit(new FindLogs("search", pattern));
 	}
 
 	@Override
 	public Collection<Log> findLogsByTag(String pattern) throws OlogException {
-		// TODO Auto-generated method stub
-		return null;
+		return wrappedSubmit(new FindLogs("tag", pattern));
 	}
 
 	@Override
 	public Collection<Log> findLogsByLogbook(String logbook)
 			throws OlogException {
-		// TODO Auto-generated method stub
-		return null;
+		return wrappedSubmit(new FindLogs("logbook", logbook));
 	}
 
 	@Override
@@ -737,9 +734,20 @@ public class OlogClientImpl implements OlogClient {
 		});
 	}
 
+	@Deprecated
 	@Override
 	public void delete(Collection<Log> logs) throws OlogException {
-		// TODO Auto-generated method stub
+		final Collection<Long> logIds = LogUtil.getLogIds(logs);
+		wrappedSubmit(new Runnable() {
+			@Override
+			public void run() {
+				for (Long logId : logIds) {
+					service.path("logs").path(logId.toString())
+							.accept(MediaType.APPLICATION_XML)
+							.accept(MediaType.APPLICATION_JSON).delete();
+				}
+			}
+		});
 
 	}
 
