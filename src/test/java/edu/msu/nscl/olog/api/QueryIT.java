@@ -22,6 +22,26 @@ import com.sun.jersey.core.util.MultivaluedMapImpl;
 
 import edu.msu.nscl.olog.api.OlogClientImpl.OlogClientBuilder;
 
+//if (key.equals("search")) {
+//    log_matches.addAll(match.getValue());
+////    JcrSearch js = new JcrSearch();
+////    jcr_search_ids = js.searchForIds(match.getValue().toString());
+//} else if (key.equals("tag")) {
+//    addTagMatches(match.getValue());
+//} else if (key.equals("logbook")) {
+//    addLogbookMatches(match.getValue());
+//} else if (key.equals("page")) {
+//    logPaginate_matches.putAll(key, match.getValue());
+//} else if (key.equals("limit")) {
+//    logPaginate_matches.putAll(key, match.getValue());
+//} else if (key.equals("start")) {
+//    date_matches.putAll(key, match.getValue());
+//} else if (key.equals("end")) {
+//    date_matches.putAll(key, match.getValue());
+//} else {
+//    value_matches.putAll(key, match.getValue());
+//}
+
 public class QueryIT {
 
 	private static int initialLogCount;
@@ -109,47 +129,43 @@ public class QueryIT {
 		Map<String, String> map = new Hashtable<String, String>();
 		map.put("search", "pvk:*");
 		Collection<Log> logs = client.findLogs(map);
-		assertTrue(
-				"Failed to get search based on subject pattern",
+		assertTrue("Failed to get search based on subject pattern",
 				logs.size() == 3);
 	}
 
 	/**
-	 * Test logbook query
-	 * When multiple logbooks are queried, the result is a logical OR of all
-	 * the query conditions
+	 * Test logbook query When multiple logbooks are queried, the result is a
+	 * logical OR of all the query conditions
 	 */
 	@Test
 	public void queryLogsbyLogbook() {
 		MultivaluedMap<String, String> map = new MultivaluedMapImpl();
 		map.add("logbook", "book2");
 		Collection<Log> logs = client.findLogs(map);
-		assertTrue(
-				"search for all logs in logbook book2 failed ",
+		assertTrue("search for all logs in logbook book2 failed ",
 				logs.size() == 1);
-
+		// Query for logs from multiple logbooks.
 		map.add("logbook", "book");
 		map.add("logbook", "book2");
 		logs = client.findLogs(map);
-		assertTrue(
-				"search for all logs in logbook book OR book2 failed",
+		assertTrue("search for all logs in logbook book OR book2 failed",
 				logs.size() == 4);
 
 	}
-	
+
 	/**
-	 * Test tag query
-	 * When multiple tags are queried, the result is a logical OR of all
-	 * the query conditions
+	 * Test tag query When multiple tags are queried, the result is a logical OR
+	 * of all the query conditions
 	 */
 	@Test
 	public void queryLogsbyTag() {
-		MultivaluedMapImpl map = new MultivaluedMapImpl();
+		MultivaluedMap<String, String> map = new MultivaluedMapImpl();
 		Collection<Log> queryResult;
 		// Search for a logs with tag 'Tag*'
 		map.add("tag", "Tag*");
 		queryResult = client.findLogs(map);
 		assertTrue(queryResult.size() == 1);
+		// query for logs with anyone of a group of tags
 		map.clear();
 		map.add("tag", "taga");
 		map.add("tag", "tagb");
@@ -157,5 +173,39 @@ public class QueryIT {
 		assertTrue(queryResult.size() == 3);
 	}
 
+	@Test
+	public void queryLogsbyDescription() {
+		MultivaluedMap<String, String> map = new MultivaluedMapImpl();
+		// search a single log based on description.
+		map.add("search", pvk_01.getDescription());
+		Collection<Log> queryResult = client.findLogs(map);
+		assertTrue(
+				"Failed to search based on the log descrition expected 1 found "
+						+ queryResult.size(), queryResult.size() == 1
+						&& queryResult.contains(pvk_01));
+		// search for "some detail" which matches multiple logs.
+		map.clear();
+		map.add("search", "some details");
+		queryResult = client.findLogs(map);
+		assertTrue(
+				"Failed to search based on the log descrition expected 2 found "
+						+ queryResult.size(), queryResult.size() == 2
+						&& queryResult.contains(pvk_03) && queryResult.contains(distinctName));
+		// search for logs with one 
+		map.clear();
+		map.add("search", pvk_01.getDescription());
+		map.add("search", pvk_02.getDescription());
+		queryResult = client.findLogs(map);
+		assertTrue(
+				"Failed to search based on the log descrition expected 2 found "
+						+ queryResult.size(), queryResult.size() == 2
+						&& queryResult.contains(pvk_01) && queryResult.contains(pvk_02));
+		
+	}
+
+	@Test
+	public void queryLogsbyTime() {
+
+	}
 
 }
