@@ -513,8 +513,26 @@ public class OlogClientImpl implements OlogClient {
 
 	@Override
 	public Log update(LogBuilder log) throws OlogException {
-		// TODO Auto-generated method stub
-		return null;
+		return wrappedSubmit(new UpdateLog(log));
+	}
+
+	private class UpdateLog implements Callable<Log> {
+		private final XmlLog log;
+
+		public UpdateLog(LogBuilder log) {
+			this.log = log.toXml();
+		}
+
+		@Override
+		public Log call() throws Exception {
+			ClientResponse response = service.path("logs")
+					.path(String.valueOf(log.getId()))
+					.accept(MediaType.APPLICATION_XML)
+					.accept(MediaType.APPLICATION_JSON)
+					.post(ClientResponse.class, log);
+			// return new Log(response.getEntity(XmlLog.class));
+			return null;
+		}
 	}
 
 	@Override
@@ -532,15 +550,40 @@ public class OlogClientImpl implements OlogClient {
 
 	@Override
 	public void update(TagBuilder tag, Long logId) throws OlogException {
-		// TODO Auto-generated method stub
+		final XmlTag xmlTag = tag.toXml();
+		final Long appendLogId = logId;
+		wrappedSubmit(new Runnable() {
 
+			@Override
+			public void run() {
+				service.path("tags").path(xmlTag.getName())
+						.path(String.valueOf(appendLogId))
+						.accept(MediaType.APPLICATION_XML)
+						.accept(MediaType.APPLICATION_JSON).put(xmlTag);
+			}
+
+		});
 	}
 
 	@Override
 	public void update(TagBuilder tag, Collection<Long> logIds)
 			throws OlogException {
-		// TODO Auto-generated method stub
-
+		final TagBuilder updateTag = tag;
+		final Collection<Long> updateIds = logIds;
+		wrappedSubmit(new Runnable() {
+			@Override
+			public void run() {
+				XmlTag xmlTag = updateTag.toXml();
+				XmlLogs logs = new XmlLogs();
+				for (Long logId : updateIds) {
+					logs.addXmlLog(new XmlLog(logId));
+				}
+				xmlTag.setXmlLogs(logs);
+				service.path("tags").path(xmlTag.getName())
+						.accept(MediaType.APPLICATION_XML)
+						.accept(MediaType.APPLICATION_JSON).post(xmlTag);
+			}
+		});
 	}
 
 	@Override
