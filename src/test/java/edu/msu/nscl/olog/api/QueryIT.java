@@ -7,11 +7,16 @@ import static org.junit.Assert.assertTrue;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
+import java.util.Date;
 import java.util.Hashtable;
+import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.core.MultivaluedMap;
 
+import org.hsqldb.lib.HashMap;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -189,23 +194,43 @@ public class QueryIT {
 		queryResult = client.findLogs(map);
 		assertTrue(
 				"Failed to search based on the log descrition expected 2 found "
-						+ queryResult.size(), queryResult.size() == 2
-						&& queryResult.contains(pvk_03) && queryResult.contains(distinctName));
-		// search for logs with one 
+						+ queryResult.size(),
+				queryResult.size() == 2 && queryResult.contains(pvk_03)
+						&& queryResult.contains(distinctName));
+		// search for logs with one
 		map.clear();
 		map.add("search", pvk_01.getDescription());
 		map.add("search", pvk_02.getDescription());
 		queryResult = client.findLogs(map);
 		assertTrue(
 				"Failed to search based on the log descrition expected 2 found "
-						+ queryResult.size(), queryResult.size() == 2
-						&& queryResult.contains(pvk_01) && queryResult.contains(pvk_02));
-		
+						+ queryResult.size(),
+				queryResult.size() == 2 && queryResult.contains(pvk_01)
+						&& queryResult.contains(pvk_02));
+
 	}
 
 	@Test
 	public void queryLogsbyTime() {
+		MultivaluedMap<String, String> searchMap = new MultivaluedMapImpl();
+		searchMap.add("search", "pvk*");
+		List<Log> logs = new ArrayList<Log>(client.findLogs(searchMap));
+		Collections.sort(logs, new Comparator<Log>() {
 
+			@Override
+			public int compare(Log o1, Log o2) {
+				return o1.getCreatedDate().compareTo(o2.getCreatedDate());
+			}
+
+		});
+		// search for an exact time, start=end
+		searchMap.clear();
+		Log log = logs.iterator().next();
+		searchMap.add("start", String.valueOf(log.getCreatedDate().getTime()));
+		searchMap.add("end", String.valueOf(log.getCreatedDate().getTime()));
+		Collection<Log> searchResult = client.findLogs(searchMap);
+		assertTrue("Failed to search based on create times",
+				searchResult.size() == 1 && searchResult.contains(log));
 	}
 
 }
