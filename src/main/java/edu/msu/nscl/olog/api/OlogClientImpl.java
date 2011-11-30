@@ -610,26 +610,19 @@ public class OlogClientImpl implements OlogClient {
 	@Override
 	public void update(LogbookBuilder logbook, Collection<Long> logIds)
 			throws OlogException {
-
+		wrappedSubmit(new UpdateLogBook(logbook, logIds));
 	}
 
-	private class updateLogBook implements Runnable {
+	private class UpdateLogBook implements Runnable {
 		private final LogbookBuilder logBook;
 		private final Collection<Long> logIds;
 
-		public updateLogBook(LogbookBuilder logBook) {
+		public UpdateLogBook(LogbookBuilder logBook) {
 			this.logBook = logBook;
 			this.logIds = null;
 		}
 
-		public updateLogBook(LogbookBuilder logBook, Long logId) {
-			this.logBook = logBook;
-			Collection<Long> logIds = new HashSet<Long>();
-			logIds.add(logId);
-			this.logIds = logIds;
-		}
-
-		public updateLogBook(LogbookBuilder logBook, Collection<Long> logIds) {
+		public UpdateLogBook(LogbookBuilder logBook, Collection<Long> logIds) {
 			this.logBook = logBook;
 			this.logIds = logIds;
 		}
