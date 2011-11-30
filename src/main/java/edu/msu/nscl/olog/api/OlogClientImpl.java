@@ -593,14 +593,23 @@ public class OlogClientImpl implements OlogClient {
 	}
 
 	@Override
-	public void update(LogbookBuilder logbook, Long logId) throws OlogException {
-		wrappedSubmit(new updateLogBook(logbook, logId));
+	public void update(LogbookBuilder logbook, final Long logId)
+			throws OlogException {
+		final XmlLogbook xmlLogbook = logbook.toXml();
+		wrappedSubmit(new Runnable() {
+			@Override
+			public void run() {
+				service.path("logbooks").path(xmlLogbook.getName())
+						.path(logId.toString())
+						.accept(MediaType.APPLICATION_JSON)
+						.accept(MediaType.APPLICATION_XML).put(xmlLogbook);
+			}
+		});
 	}
 
 	@Override
 	public void update(LogbookBuilder logbook, Collection<Long> logIds)
 			throws OlogException {
-		// TODO Auto-generated method stub
 
 	}
 
