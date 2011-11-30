@@ -49,18 +49,22 @@ public class UpdateIT {
 	 */
 	@Test
 	public void updateLog() {
-		Log log1 = null;
+		Log testlog1 = null;
 		try {
-			log1 = client.set(log("log1").description("some details")
+			testlog1 = client.set(log("testlog1_updateLog").description("test log")
 					.level("Info").in(defaultLogbook));
-			client.update(log(log1).with(defaultTag));
+			assertTrue(
+					"created testlog already contans testTag",
+					client.findLogsBySearch(testlog1.getSubject()).iterator().next()
+							.getTag(defaultTag.build().getName()) == null);
+			client.update(log(testlog1).with(defaultTag));
 			assertTrue(
 					"failed to update log with tag",
-					client.findLogsBySearch("log1").iterator().next()
+					client.findLogsBySearch(testlog1.getSubject()).iterator().next()
 							.getTag(defaultTag.build().getName()) != null);
 		} finally {
-			if (log1 != null) {
-				client.delete(log1.getId());
+			if (testlog1 != null) {
+				client.delete(testlog1.getId());
 			}
 		}
 	}
@@ -77,38 +81,86 @@ public class UpdateIT {
 
 	@Test
 	public void updateTag2Log() {
-		Collection<Log> queryResult;
-		Log testLog = null;
+		TagBuilder testTag = tag("testTag1");
+		Log testLog1 = null;
+		Log testLog2 = null;
 		try {
-			queryResult = client.findLogsByTag(defaultTag.build().getName());
-			testLog = client.set(log("log2").description("some details")
-					.level("Info").in(defaultLogbook));
-			assertTrue("Tag already present on log2",
-					!queryResult.contains(testLog));
-			client.update(defaultTag, testLog.getId());
-			queryResult = client.findLogsByTag(defaultTag.build().getName());
-			assertTrue("Failed to update log2 with tag", LogUtil
-					.getLogSubjects(queryResult).contains(testLog.getSubject()));
+			// create test logs
+			testLog1 = client.set(log("testLog1_updateTag2Log")
+					.description("test log").in(defaultLogbook).level("Info"));
+			testLog2 = client.set(log("testLog2_updateTag2Log")
+					.description("test log").in(defaultLogbook).level("Info"));
+			// create a Tag with no logs
+			client.set(testTag);
+			assertTrue("failed to create an empty tag testTag1", client
+					.findLogsByTag(testTag.build().getName()).size() == 0);
+			// add testLog1 to testTag
+			client.update(testTag, testLog1.getId());
+			// check if the log was updated with the logbook
+			assertTrue(
+					"failed to update testLog1 with testTag1",
+					checkEqualityWithoutID(
+							client.findLogsByTag(testTag.build().getName()),
+							testLog1));
+			// add testLog2 to testTag
+			client.update(testTag, testLog2.getId());
+			// check if the testLog2 was updated with the logbook
+			assertTrue(
+					"failed to update testLog2 with testTag1",
+					checkEqualityWithoutID(
+							client.findLogsByTag(testTag.build().getName()),
+							testLog2));
+			// check testLog1 was not affected by the update
+			assertTrue(
+					"failed to update testLog1 with testTag1",
+					checkEqualityWithoutID(
+							client.findLogsByTag(testTag.build().getName()),
+							testLog1));
+		} catch (Exception ex) {
+			fail(ex.getMessage());
 		} finally {
-			client.delete(client.findLogsBySearch("log2"));
+			client.deleteTag(testTag.build().getName());
+			if (testLog1 != null)
+				client.delete(testLog1.getId());
+			if (testLog2 != null)
+				client.delete(testLog2.getId());
 		}
 	}
 
 	@Test
 	public void updateTag2Logs() {
-		TagBuilder newTag = tag("testTag");
+		TagBuilder testTag = tag("testTag2");
+		Log testLog1 = null;
+		Log testLog2 = null;
 		try {
-			client.set(newTag);
-			assertTrue("failed to create a empty new tag", client
-					.findLogsByTag(newTag.build().getName()).size() == 0);
-			Collection<Log> queryResult = client.findLogsBySearch("log*");
-			client.update(newTag, LogUtil.getLogIds(queryResult));
+			// create test logs
+			testLog1 = client.set(log("testLog1_updateTag2Logs")
+					.description("test log").in(defaultLogbook).level("Info"));
+			testLog2 = client.set(log("testLog2_updateTag2Logs")
+					.description("test log").in(defaultLogbook).level("Info"));
+			// create a Tag with no logs
+			client.set(testTag);
+			assertTrue("failed to create an empty tag testTag2", client
+					.findLogsByTag(testTag.build().getName()).size() == 0);
+			// add testLog1 & testLog2 to testTag
+			Collection<Log> logs = new ArrayList<Log>();
+			logs.add(testLog1);
+			logs.add(testLog2);
+			client.update(testTag, LogUtil.getLogIds(logs));
+			// check if the logs were added to the testTag
 			assertTrue(
-					"Failed to add tag to logs",
-					client.findLogsByTag(newTag.build().getName()).contains(
-							queryResult));
+					"failed to update a group of logs(testLog1, testLog2) with testTag2",
+					checkEqualityWithoutID(
+							client.findLogsByTag(testTag.build().getName()),
+							logs));
+		} catch (Exception e) {
+			fail(e.getMessage());
 		} finally {
-			client.deleteTag(newTag.build().getName());
+			client.deleteTag(testTag.build().getName());
+			if (testLog1 != null)
+				client.delete(testLog1.getId());
+			if (testLog2 != null)
+				client.delete(testLog2.getId());
 		}
 
 	}
@@ -124,13 +176,13 @@ public class UpdateIT {
 		Log testLog1 = null;
 		Log testLog2 = null;
 		try {
-			// create a logbook with no logs
-			client.set(logbook);
 			// create test logs
 			testLog1 = client.set(log("testLog1_updateLogbook2Log")
 					.description("test log").in(defaultLogbook).level("Info"));
 			testLog2 = client.set(log("testLog2_updateLogbook2Log")
 					.description("test log").in(defaultLogbook).level("Info"));
+			// create a logbook with no logs
+			client.set(logbook);
 			assertTrue("failed to create an empty logbook", client
 					.findLogsByLogbook(logbook.build().getName()).size() == 0);
 			// add testLog1 to logbook
@@ -193,7 +245,7 @@ public class UpdateIT {
 							client.findLogsByLogbook(logbook.build().getName()),
 							logs));
 		} catch (Exception e) {
-			// TODO: handle exception
+			fail(e.getMessage());
 		} finally {
 			client.deleteLogbook(logbook.build().getName());
 			if (testLog1 != null)
