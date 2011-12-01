@@ -18,6 +18,7 @@ import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
 
+import org.apache.jackrabbit.webdav.DavException;
 import org.hsqldb.lib.HashSet;
 import org.junit.After;
 import org.junit.AfterClass;
@@ -247,7 +248,26 @@ public class SetDeleteIT {
 			}
 		}
 	}
-	
+
+	@Test
+	public void attachImageFileToLogId() throws IOException, DavException {
+		Log testLog = null;
+		File f = null;
+		try {
+			f = new File("the_homercar.jpg");
+			testLog = client.set(log("test_attachImageFileToLogId")
+					.description("test log").level("Info")
+					.in(defaultLogBook));
+			client.add(f, testLog.getId());
+			assertTrue(client.getAttachments(testLog.getId()).size() == 1);
+		} finally {
+			if (testLog != null) {
+				client.delete(testLog.getId());
+				client.delete("the_homercar.jpg", testLog.getId());
+			}
+		}
+	}
+
 	@Test
 	public void test() {
 		File f = new File("file2.txt");
