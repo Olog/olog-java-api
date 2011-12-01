@@ -2,7 +2,12 @@ package edu.msu.nscl.olog.api;
 
 import static edu.msu.nscl.olog.api.TagBuilder.tag;
 
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.io.InputStream;
 import java.net.URI;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
@@ -28,11 +33,22 @@ import javax.ws.rs.core.MediaType;
 import javax.ws.rs.core.MultivaluedMap;
 import javax.ws.rs.core.UriBuilder;
 
+import net.coobird.thumbnailator.Thumbnails;
+
 import org.apache.commons.httpclient.Credentials;
 import org.apache.commons.httpclient.HttpClient;
 import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.apache.commons.httpclient.auth.AuthScope;
+import org.apache.commons.httpclient.methods.InputStreamRequestEntity;
+import org.apache.commons.httpclient.methods.RequestEntity;
+import org.apache.jackrabbit.webdav.DavConstants;
 import org.apache.jackrabbit.webdav.DavException;
+import org.apache.jackrabbit.webdav.MultiStatus;
+import org.apache.jackrabbit.webdav.MultiStatusResponse;
+import org.apache.jackrabbit.webdav.client.methods.DavMethod;
+import org.apache.jackrabbit.webdav.client.methods.MkColMethod;
+import org.apache.jackrabbit.webdav.client.methods.PropFindMethod;
+import org.apache.jackrabbit.webdav.client.methods.PutMethod;
 
 import com.sun.jersey.api.client.Client;
 import com.sun.jersey.api.client.ClientResponse;
@@ -369,8 +385,30 @@ public class OlogClientImpl implements OlogClient {
 	@Override
 	public Collection<String> getAttachments(Long logId) throws OlogException,
 			DavException {
-		// TODO Auto-generated method stub
-		return null;
+		Collection<String> allFiles = new HashSet<String>();
+		try {
+			URI remote = UriBuilder.fromUri(getJCRBaseURI()).path("{arg1}/")
+					.build(logId);
+			DavMethod pFind = new PropFindMethod(remote.toASCIIString(),
+					DavConstants.PROPFIND_ALL_PROP, DavConstants.DEPTH_1);
+			webdav.executeMethod(pFind);
+			MultiStatus multiStatus = pFind.getResponseBodyAsMultiStatus();
+			MultiStatusResponse[] responses = multiStatus.getResponses();
+			MultiStatusResponse currResponse;
+
+			for (int i = 0; i < responses.length; i++) {
+				currResponse = responses[i];
+				if (!currResponse.getHref().endsWith("/")) {
+					allFiles.add(currResponse.getHref());
+				}
+			}
+			pFind.releaseConnection();
+			return allFiles;
+		} catch (UniformInterfaceException e) {
+			throw new OlogException(e);
+		} catch (IOException e) {
+			throw new OlogException(e);
+		}
 	}
 
 	@Override
@@ -659,8 +697,62 @@ public class OlogClientImpl implements OlogClient {
 
 	@Override
 	public void add(File local, Long logId) throws OlogException {
-		// TODO Auto-generated method stub
+		URI remote = UriBuilder.fromUri(getJCRBaseURI()).path("{arg1}")
+				.path("{arg2}").build(logId, local.getName());
+		URI remoteThumb = UriBuilder.fromUri(getJCRBaseURI())
+				.path("thumbnails").path("{arg1}").path("{arg2}")
+				.build(logId, local.getName());
+		URI remoteDir = UriBuilder.fromUri(getJCRBaseURI()).path("{arg1}")
+				.build(logId);
+		URI remoteThumbDir = UriBuilder.fromUri(getJCRBaseURI())
+				.path("thumbnails").path("{arg1}").build(logId);
+		final int ndx = local.getName().lastIndexOf(".");
+		final String extension = local.getName().substring(ndx + 1);
+		DavMethod mkCol = new MkColMethod(remoteDir.toASCIIString());
+		DavMethod mkColThumb = new MkColMethod(remoteThumbDir.toASCIIString());
+		PutMethod putM = new PutMethod(remote.toASCIIString());
+		PutMethod putMThumb = new PutMethod(remoteThumb.toASCIIString());
+		try {
+			PropFindMethod propM = new PropFindMethod(remoteDir.toASCIIString());
+			webdav.executeMethod(propM);
+			if (!propM.succeeded())
+				webdav.executeMethod(mkCol);
+			propM.releaseConnection();
+			mkCol.releaseConnection();
+		} catch (IOException ex) {
+			throw new OlogException(ex);
+		}
+		try {
+			FileInputStream fis = new FileInputStream(local);
+			RequestEntity requestEntity = new InputStreamRequestEntity(fis);
+			putM.setRequestEntity(requestEntity);
+			webdav.executeMethod(putM);
+			putM.releaseConnection();
+			// If image add thumbnail
+			if ((extension.equals("jpeg") || extension.equals("jpg")
+					|| extension.equals("gif") || extension.equals("png"))) {
+				PropFindMethod propMThumb = new PropFindMethod(
+						remoteThumbDir.toASCIIString());
+				webdav.executeMethod(propMThumb);
+				if (!propMThumb.succeeded())
+					webdav.executeMethod(mkColThumb);
+				propMThumb.releaseConnection();
+				mkColThumb.releaseConnection();
+				ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
+				Thumbnails.of(local).size(80, 80).outputFormat("jpg")
+						.toOutputStream(outputStream);
+				InputStream fis2 = new ByteArrayInputStream(
+						outputStream.toByteArray());
+				RequestEntity requestEntity2 = new InputStreamRequestEntity(
+						fis2);
+				putMThumb.setRequestEntity(requestEntity2);
+				webdav.executeMethod(putMThumb);
+				putMThumb.releaseConnection();
 
+			}
+		} catch (IOException e) {
+			throw new OlogException(e);
+		}
 	}
 
 	@Override
@@ -837,9 +929,16 @@ public class OlogClientImpl implements OlogClient {
 	}
 
 	@Override
-	public void delete(String fileName, Long logId) {
-		// TODO Auto-generated method stub
-
+	public void delete(final String fileName, final Long logId) {
+		wrappedSubmit(new Runnable() {
+			@Override
+			public void run() {
+				URI remote = UriBuilder.fromUri(getJCRBaseURI()).path("{arg1}")
+						.path("{arg2}").build(logId, fileName);
+				service.uri(remote).accept(MediaType.APPLICATION_XML)
+						.accept(MediaType.APPLICATION_JSON).delete();
+			}
+		});
 	}
 
 	private <T> T wrappedSubmit(Callable<T> callable) {
