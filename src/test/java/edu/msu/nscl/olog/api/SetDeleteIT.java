@@ -146,7 +146,7 @@ public class SetDeleteIT {
 	 * create(set) and delete a single log
 	 * 
 	 */
-//	@Test
+	@Test
 	public void setLogTest() {
 		LogBuilder log = log("testLog").description("some details")
 				.level("Info").in(defaultLogBook);
@@ -177,7 +177,7 @@ public class SetDeleteIT {
 	 * create(set) and delete a group of logs
 	 * 
 	 */
-//	@Test
+	@Test
 	public void setLogsTest() {
 		LogBuilder log1 = log("testLog1").description("some details")
 				.level("Info").in(defaultLogBook);
@@ -249,7 +249,7 @@ public class SetDeleteIT {
 		}
 	}
 
-	@Test
+//	@Test
 	public void attachImageFileToLogId() throws IOException, DavException {
 		Log testLog = null;
 		File f = null;
