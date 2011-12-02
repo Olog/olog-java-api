@@ -127,7 +127,7 @@ public class UpdateIT {
 		}
 	}
 
-	@Test
+//	@Test
 	public void updateTag2Logs() {
 		TagBuilder testTag = tag("testTag2");
 		Log testLog1 = null;
@@ -170,7 +170,7 @@ public class UpdateIT {
 
 	}
 
-	@Test
+//	@Test
 	public void updateLogbook2Log() {
 		LogbookBuilder logbook = logbook("testLogbook1").owner("me");
 		Log testLog1 = null;
@@ -218,7 +218,7 @@ public class UpdateIT {
 		}
 	}
 
-	@Test
+//	@Test
 	public void updateLogbook2Logs() {
 		LogbookBuilder logbook = logbook("testLogbook2").owner("me");
 		Log testLog1 = null;

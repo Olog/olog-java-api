@@ -146,7 +146,7 @@ public class SetDeleteIT {
 	 * create(set) and delete a single log
 	 * 
 	 */
-	@Test
+//	@Test
 	public void setLogTest() {
 		LogBuilder log = log("testLog").description("some details")
 				.level("Info").in(defaultLogBook);
@@ -177,7 +177,7 @@ public class SetDeleteIT {
 	 * create(set) and delete a group of logs
 	 * 
 	 */
-	@Test
+//	@Test
 	public void setLogsTest() {
 		LogBuilder log1 = log("testLog1").description("some details")
 				.level("Info").in(defaultLogBook);
@@ -217,7 +217,7 @@ public class SetDeleteIT {
 		}
 	}
 
-	@Test
+//	@Test
 	public void addAttachment2Log() {
 		Log testLog = null;
 		File f = null;
@@ -295,7 +295,7 @@ public class SetDeleteIT {
 	 * Destructive operation which removes the tag from all other logs and only
 	 * adds it to the specified log
 	 */
-	@Test
+//	@Test
 	public void setTag2LogTest() {
 
 		String tagName = defaultTag.toXml().getName();
@@ -321,7 +321,7 @@ public class SetDeleteIT {
 		}
 	}
 
-	@Test
+//	@Test
 	public void setTag2LogsTest() {
 		String tagName = defaultTag.toXml().getName();
 
@@ -351,7 +351,7 @@ public class SetDeleteIT {
 	 * Test destructive set on a logbook, the logbook should be added to only
 	 * those logs specified and removed from all others
 	 */
-	@Test
+//	@Test
 	public void setLogbook2logTest() {
 		LogbookBuilder testLogBook = logbook("testLogBook").owner(logbookOwner);
 		Map<String, String> map = new Hashtable<String, String>();

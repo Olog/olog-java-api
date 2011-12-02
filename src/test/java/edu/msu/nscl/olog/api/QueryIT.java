@@ -129,7 +129,7 @@ public class QueryIT {
 	/**
 	 * Test searching based on
 	 */
-	@Test
+//	@Test
 	public void queryLogs() {
 		Map<String, String> map = new Hashtable<String, String>();
 		map.put("search", "pvk:*");
@@ -178,7 +178,7 @@ public class QueryIT {
 		assertTrue(queryResult.size() == 3);
 	}
 
-	@Test
+//	@Test
 	public void queryLogsbyDescription() {
 		MultivaluedMap<String, String> map = new MultivaluedMapImpl();
 		// search a single log based on description.
@@ -210,7 +210,7 @@ public class QueryIT {
 
 	}
 
-	@Test
+//	@Test
 	public void queryLogsbyTime() {
 		MultivaluedMap<String, String> searchMap = new MultivaluedMapImpl();
 		searchMap.add("search", "pvk*");
@@ -236,7 +236,7 @@ public class QueryIT {
 	/**
 	 * Test findLogsby*() methods
 	 */
-	@Test
+//	@Test
 	public void queryTest() {
 		// find by search
 		assertTrue("Failed to query using findbysearch method ", client
