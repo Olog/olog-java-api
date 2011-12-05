@@ -170,7 +170,7 @@ public class UpdateIT {
 
 	}
 
-//	@Test
+	@Test
 	public void updateLogbook2Log() {
 		LogbookBuilder logbook = logbook("testLogbook1").owner("me");
 		Log testLog1 = null;
