@@ -597,7 +597,7 @@ public class OlogClientImpl implements OlogClient {
 				service.path("tags").path(xmlTag.getName())
 						.path(String.valueOf(appendLogId))
 						.accept(MediaType.APPLICATION_XML)
-						.accept(MediaType.APPLICATION_JSON).put(xmlTag);
+						.accept(MediaType.APPLICATION_JSON).put();
 			}
 
 		});
@@ -640,7 +640,7 @@ public class OlogClientImpl implements OlogClient {
 				service.path("logbooks").path(xmlLogbook.getName())
 						.path(logId.toString())
 						.accept(MediaType.APPLICATION_JSON)
-						.accept(MediaType.APPLICATION_XML).put(xmlLogbook);
+						.accept(MediaType.APPLICATION_XML).put();
 			}
 		});
 	}
