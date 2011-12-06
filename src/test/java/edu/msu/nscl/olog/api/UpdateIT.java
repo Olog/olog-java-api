@@ -127,7 +127,7 @@ public class UpdateIT {
 		}
 	}
 
-//	@Test
+	@Test
 	public void updateTag2Logs() {
 		TagBuilder testTag = tag("testTag2");
 		Log testLog1 = null;
