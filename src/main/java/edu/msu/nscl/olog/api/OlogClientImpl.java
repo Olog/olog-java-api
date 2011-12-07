@@ -687,8 +687,8 @@ public class OlogClientImpl implements OlogClient {
 				xmlLogBook.setXmlLogs(xmlLogs);
 			}
 			ClientResponse response = service.path("logbooks").path(xmlLogBook.getName())
-					.accept(MediaType.APPLICATION_JSON)
-					.accept(MediaType.APPLICATION_XML).post(ClientResponse.class, xmlLogBook);
+					.accept(MediaType.APPLICATION_XML)
+					.accept(MediaType.APPLICATION_JSON).post(ClientResponse.class, xmlLogBook);
 			return new Logbook(response.getEntity(XmlLogbook.class));
 		}
 	}

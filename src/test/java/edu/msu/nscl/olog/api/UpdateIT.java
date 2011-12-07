@@ -218,7 +218,7 @@ public class UpdateIT {
 		}
 	}
 
-//	@Test
+	@Test
 	public void updateLogbook2Logs() {
 		LogbookBuilder logbook = logbook("testLogbook2").owner("me");
 		Log testLog1 = null;
