@@ -106,8 +106,12 @@ public class SetDeleteIT {
 		LogbookBuilder logbook = logbook("testLogBook").owner(logbookOwner);
 		try {
 			// set a logbook
-			// list all logbook
-			client.set(logbook);
+			Logbook returnLogbook = client.set(logbook);
+			assertTrue("failed to set the testLogbook, the return was null",
+					returnLogbook != null);
+			assertTrue(
+					"failed to set the testLogbook, created logbook not eq to payload",
+					returnLogbook.equals(logbook.build()));
 			assertTrue("failed to set the testLogBook", client.listLogbooks()
 					.contains(logbook.build()));
 		} catch (Exception e) {
@@ -128,8 +132,13 @@ public class SetDeleteIT {
 		TagBuilder tag = tag("testTag");
 		try {
 			// set a tag
-			// list all tag
-			client.set(tag);
+			Tag returnTag = client.set(tag);
+			assertTrue("failed to set the testTag, the return was null",
+					returnTag != null);
+			assertTrue(
+					"failed to set the testTag, tag logbook not eq to payload",
+					returnTag.equals(tag.build()));
+
 			assertTrue("failed to set the testTag",
 					client.listTags().contains(tag.build()));
 		} catch (Exception e) {
@@ -217,7 +226,7 @@ public class SetDeleteIT {
 		}
 	}
 
-//	@Test
+	@Test
 	public void addAttachment2Log() {
 		Log testLog = null;
 		File f = null;
@@ -244,26 +253,25 @@ public class SetDeleteIT {
 			}
 			if (f.exists()) {
 				boolean success = f.delete();
-				assertTrue("attachment File clean up failed", success);
+//				assertTrue("attachment File clean up failed", success);
 			}
 		}
 	}
 
-//	@Test
+	// @Test
 	public void attachImageFileToLogId() throws IOException, DavException {
 		Log testLog = null;
 		File f = null;
 		try {
 			f = new File("the_homercar.jpg");
 			testLog = client.set(log("test_attachImageFileToLogId")
-					.description("test log").level("Info")
-					.in(defaultLogBook));
+					.description("test log").level("Info").in(defaultLogBook));
 			client.add(f, testLog.getId());
 			assertTrue(client.getAttachments(testLog.getId()).size() == 1);
 		} finally {
 			if (testLog != null) {
-				client.delete(testLog.getId());
 				client.delete("the_homercar.jpg", testLog.getId());
+				client.delete(testLog.getId());
 			}
 		}
 	}
@@ -295,7 +303,7 @@ public class SetDeleteIT {
 	 * Destructive operation which removes the tag from all other logs and only
 	 * adds it to the specified log
 	 */
-//	@Test
+	// @Test
 	public void setTag2LogTest() {
 
 		String tagName = defaultTag.toXml().getName();
@@ -321,7 +329,7 @@ public class SetDeleteIT {
 		}
 	}
 
-//	@Test
+	// @Test
 	public void setTag2LogsTest() {
 		String tagName = defaultTag.toXml().getName();
 
@@ -351,7 +359,7 @@ public class SetDeleteIT {
 	 * Test destructive set on a logbook, the logbook should be added to only
 	 * those logs specified and removed from all others
 	 */
-//	@Test
+	// @Test
 	public void setLogbook2logTest() {
 		LogbookBuilder testLogBook = logbook("testLogBook").owner(logbookOwner);
 		Map<String, String> map = new Hashtable<String, String>();
