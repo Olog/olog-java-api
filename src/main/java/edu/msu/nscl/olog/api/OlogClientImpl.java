@@ -459,23 +459,23 @@ public class OlogClientImpl implements OlogClient {
 	}
 
 	@Override
-	public void set(TagBuilder tag) throws OlogException {
-		wrappedSubmit(new SetTag(tag));
+	public Tag set(TagBuilder tag) throws OlogException {
+		return wrappedSubmit(new SetTag(tag));
 
 	}
 
 	@Override
-	public void set(TagBuilder tag, Long logId) throws OlogException {
-		wrappedSubmit(new SetTag(tag, logId));
+	public Tag set(TagBuilder tag, Long logId) throws OlogException {
+		return wrappedSubmit(new SetTag(tag, logId));
 	}
 
 	@Override
-	public void set(TagBuilder tag, Collection<Long> logIds)
+	public Tag set(TagBuilder tag, Collection<Long> logIds)
 			throws OlogException {
-		wrappedSubmit(new SetTag(tag, logIds));
+		return wrappedSubmit(new SetTag(tag, logIds));
 	}
 
-	private class SetTag implements Runnable {
+	private class SetTag implements Callable<Tag> {
 
 		private TagBuilder tag;
 		private Collection<Long> logIds;
@@ -497,7 +497,7 @@ public class OlogClientImpl implements OlogClient {
 		}
 
 		@Override
-		public void run() {
+		public Tag call() {
 			XmlTag xmlTag = tag.toXml();
 			if (logIds != null && logIds.size() > 0) {
 				XmlLogs xmlLogs = new XmlLogs();
@@ -506,45 +506,51 @@ public class OlogClientImpl implements OlogClient {
 				}
 				xmlTag.setXmlLogs(xmlLogs);
 			}
-			service.path("tags").path(tag.toXml().getName())
-					.accept(MediaType.APPLICATION_XML).put(xmlTag);
+			ClientResponse response = service.path("tags").path(tag.toXml().getName())
+					.accept(MediaType.APPLICATION_XML).put(ClientResponse.class, xmlTag);
+			return new Tag(response.getEntity(XmlTag.class));
 		}
+	}
+
+	@Override
+	public Logbook set(LogbookBuilder logbook) throws OlogException {
+		return wrappedSubmit(new SetLogbook(logbook));
+	}
+
+	@Override
+	public Logbook set(LogbookBuilder logbook, Long logId) throws OlogException {		 
+		return wrappedSubmit(new SetLogbook(logbook, logId));
 
 	}
 
 	@Override
-	public void set(LogbookBuilder logbook) throws OlogException {
-		wrappedSubmit(new SetLogBook(logbook));
-	}
-
-	@Override
-	public void set(LogbookBuilder logbook, Long logId) throws OlogException {
-		XmlLogbook xmlLogbook = logbook.toXml();
-		service.path("logbooks").path(xmlLogbook.getName())
-				.path(String.valueOf(logId)).put(xmlLogbook);
-
-	}
-
-	@Override
-	public void set(LogbookBuilder logbook, Collection<Long> logIds)
+	public Logbook set(LogbookBuilder logbook, Collection<Long> logIds)
 			throws OlogException {
+				return null;
 		// TODO Auto-generated method stub
 
 	}
 
-	private class SetLogBook implements Runnable {
+	private class SetLogbook implements Callable<Logbook> {
 		private final LogbookBuilder logbook;
 
-		SetLogBook(LogbookBuilder logbook) {
+		SetLogbook(LogbookBuilder logbook) {
+			this.logbook = logbook;
+		}
+
+		public SetLogbook(LogbookBuilder logbook, Long logId) {
+			// TODO Auto-generated constructor stub
 			this.logbook = logbook;
 		}
 
 		@Override
-		public void run() {
+		public Logbook call() {
 			XmlLogbook xmlLogbook = logbook.toXml();
-			service.path("logbooks").path(xmlLogbook.getName())
+			ClientResponse response = service.path("logbooks").path(xmlLogbook.getName())
 					.accept(MediaType.APPLICATION_XML)
-					.accept(MediaType.APPLICATION_JSON).put(xmlLogbook);
+					.accept(MediaType.APPLICATION_JSON).put(ClientResponse.class, xmlLogbook);
+			return new Logbook(response.getEntity(XmlLogbook.class));
+//			return null;
 		}
 
 	}
@@ -568,8 +574,7 @@ public class OlogClientImpl implements OlogClient {
 					.accept(MediaType.APPLICATION_XML)
 					.accept(MediaType.APPLICATION_JSON)
 					.post(ClientResponse.class, log);
-			// return new Log(response.getEntity(XmlLog.class));
-			return null;
+			return new Log(response.getEntity(XmlLog.class));
 		}
 	}
 
@@ -581,77 +586,83 @@ public class OlogClientImpl implements OlogClient {
 	}
 
 	@Override
-	public void update(TagBuilder tag) throws OlogException {
+	public Tag update(TagBuilder tag) throws OlogException {
+		return null;
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void update(TagBuilder tag, Long logId) throws OlogException {
+	public Tag update(TagBuilder tag, Long logId) throws OlogException {
 		final XmlTag xmlTag = tag.toXml();
 		final Long appendLogId = logId;
-		wrappedSubmit(new Runnable() {
+		return wrappedSubmit(new Callable<Tag>() {
 
 			@Override
-			public void run() {
-				service.path("tags").path(xmlTag.getName())
+			public Tag call() {
+				ClientResponse response = service.path("tags").path(xmlTag.getName())
 						.path(String.valueOf(appendLogId))
 						.accept(MediaType.APPLICATION_XML)
-						.accept(MediaType.APPLICATION_JSON).put();
+						.accept(MediaType.APPLICATION_JSON).put(ClientResponse.class);
+				return new Tag(response.getEntity(XmlTag.class));
 			}
 
 		});
 	}
 
 	@Override
-	public void update(TagBuilder tag, Collection<Long> logIds)
+	public Tag update(TagBuilder tag, Collection<Long> logIds)
 			throws OlogException {
 		final TagBuilder updateTag = tag;
 		final Collection<Long> updateIds = logIds;
-		wrappedSubmit(new Runnable() {
+		return wrappedSubmit(new Callable<Tag>() {
 			@Override
-			public void run() {
+			public Tag call() {
 				XmlTag xmlTag = updateTag.toXml();
 				XmlLogs logs = new XmlLogs();
 				for (Long logId : updateIds) {
 					logs.addXmlLog(new XmlLog(logId));
 				}
 				xmlTag.setXmlLogs(logs);
-				service.path("tags").path(xmlTag.getName())
+				ClientResponse reponse = service.path("tags").path(xmlTag.getName())
 						.accept(MediaType.APPLICATION_XML)
-						.accept(MediaType.APPLICATION_JSON).post(xmlTag);
+						.accept(MediaType.APPLICATION_JSON).post(ClientResponse.class, xmlTag);
+				return new Tag(reponse.getEntity(XmlTag.class));
+				
 			}
 		});
 	}
 
 	@Override
-	public void update(LogbookBuilder logbookBuilder) throws OlogException {
+	public Logbook update(LogbookBuilder logbookBuilder) throws OlogException {
+		return null;
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void update(LogbookBuilder logbook, final Long logId)
+	public Logbook update(LogbookBuilder logbook, final Long logId)
 			throws OlogException {
 		final XmlLogbook xmlLogbook = logbook.toXml();
-		wrappedSubmit(new Runnable() {
+		return wrappedSubmit(new Callable<Logbook>() {
 			@Override
-			public void run() {
-				service.path("logbooks").path(xmlLogbook.getName())
+			public Logbook call() {
+				ClientResponse response = service.path("logbooks").path(xmlLogbook.getName())
 						.path(logId.toString())
-						.accept(MediaType.APPLICATION_JSON)
-						.accept(MediaType.APPLICATION_XML).put();
+						.accept(MediaType.APPLICATION_XML)
+						.accept(MediaType.APPLICATION_JSON).put(ClientResponse.class);
+				return new Logbook(response.getEntity(XmlLogbook.class));
 			}
 		});
 	}
 
 	@Override
-	public void update(LogbookBuilder logbook, Collection<Long> logIds)
+	public Logbook update(LogbookBuilder logbook, Collection<Long> logIds)
 			throws OlogException {
-		wrappedSubmit(new UpdateLogBook(logbook, logIds));
+		return wrappedSubmit(new UpdateLogBook(logbook, logIds));
 	}
 
-	private class UpdateLogBook implements Runnable {
+	private class UpdateLogBook implements Callable<Logbook> {
 		private final LogbookBuilder logBook;
 		private final Collection<Long> logIds;
 
@@ -666,7 +677,7 @@ public class OlogClientImpl implements OlogClient {
 		}
 
 		@Override
-		public void run() {
+		public Logbook call() {
 			XmlLogbook xmlLogBook = this.logBook.toXml();
 			if (this.logIds != null && this.logIds.size() > 0) {
 				XmlLogs xmlLogs = new XmlLogs();
@@ -675,22 +686,25 @@ public class OlogClientImpl implements OlogClient {
 				}
 				xmlLogBook.setXmlLogs(xmlLogs);
 			}
-			service.path("logbooks").path(xmlLogBook.getName())
+			ClientResponse response = service.path("logbooks").path(xmlLogBook.getName())
 					.accept(MediaType.APPLICATION_JSON)
-					.accept(MediaType.APPLICATION_XML).post(xmlLogBook);
+					.accept(MediaType.APPLICATION_XML).post(ClientResponse.class, xmlLogBook);
+			return new Logbook(response.getEntity(XmlLogbook.class));
 		}
 	}
 
 	@Override
-	public void update(PropertyBuilder property, Long logId)
+	public Property update(PropertyBuilder property, Long logId)
 			throws OlogException {
+				return null;
 		// TODO Auto-generated method stub
 
 	}
 
 	@Override
-	public void update(PropertyBuilder property, Collection<Long> logIds)
+	public Property update(PropertyBuilder property, Collection<Long> logIds)
 			throws OlogException {
+				return null;
 		// TODO Auto-generated method stub
 
 	}
