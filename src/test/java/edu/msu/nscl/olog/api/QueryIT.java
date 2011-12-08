@@ -210,7 +210,7 @@ public class QueryIT {
 
 	}
 
-//	@Test
+	@Test
 	public void queryLogsbyTime() {
 		MultivaluedMap<String, String> searchMap = new MultivaluedMapImpl();
 		searchMap.add("search", "pvk*");
@@ -226,8 +226,8 @@ public class QueryIT {
 		// search for an exact time, start=end
 		searchMap.clear();
 		Log log = logs.iterator().next();
-		searchMap.add("start", String.valueOf(log.getCreatedDate().getTime()));
-		searchMap.add("end", String.valueOf(log.getCreatedDate().getTime()));
+		searchMap.add("start", String.valueOf(log.getCreatedDate().getTime() / 1000L));
+		searchMap.add("end", String.valueOf(log.getCreatedDate().getTime() / 1000L));
 		Collection<Log> searchResult = client.findLogs(searchMap);
 		assertTrue("Failed to search based on create times",
 				searchResult.size() == 1 && searchResult.contains(log));
