@@ -10,13 +10,13 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.List;
 import java.util.Map;
 
 import javax.ws.rs.core.MultivaluedMap;
 
-import org.hsqldb.lib.HashMap;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -134,7 +134,7 @@ public class QueryIT {
 		Map<String, String> map = new Hashtable<String, String>();
 		map.put("search", "pvk:*");
 		Collection<Log> logs = client.findLogs(map);
-		assertTrue("Failed to get search based on subject pattern",
+		assertTrue("Failed to get search based on subject pattern, expected 3 found " + logs.size(),
 				logs.size() == 3);
 	}
 
@@ -210,27 +210,110 @@ public class QueryIT {
 
 	}
 
+	/**
+	 * Test the querying based on the create time
+	 * 
+	 * @param first
+	 */
 	@Test
 	public void queryLogsbyTime() {
-		MultivaluedMap<String, String> searchMap = new MultivaluedMapImpl();
-		searchMap.add("search", "pvk*");
-		List<Log> logs = new ArrayList<Log>(client.findLogs(searchMap));
-		Collections.sort(logs, new Comparator<Log>() {
+		Log first;
+		Log third;
 
-			@Override
-			public int compare(Log o1, Log o2) {
-				return o1.getCreatedDate().compareTo(o2.getCreatedDate());
+		Collection<Log> searchResult;
+		Map<String, String> searchParameters = new HashMap<String, String>();
+
+		try {
+			synchronized (this) {
+				this.wait(1000L);
+				client.set(log("Test log1 for time")
+						.level("info").in(book).description("test log"));
+				System.out.println(System.currentTimeMillis());
+				this.wait(1000L);
+				client.set(log("Test log2 for time").level("info").in(book)
+						.description("test log"));
+				System.out.println(System.currentTimeMillis());
+				this.wait(1000L);
+				client.set(log("Test log3 for time")
+						.level("info").in(book).description("test log"));
+				System.out.println(System.currentTimeMillis());
+				this.wait(1000L);
+				// XXX
+				// A search is required because the response from the service
+				// for a put only contains Id info and not the create time.
+
+				first = client.findLogsBySearch("Test log1 for time")
+						.iterator().next();
+				third = client.findLogsBySearch("Test log3 for time")
+						.iterator().next();
 			}
 
-		});
-		// search for an exact time, start=end
-		searchMap.clear();
-		Log log = logs.iterator().next();
-		searchMap.add("start", String.valueOf(log.getCreatedDate().getTime() / 1000L));
-		searchMap.add("end", String.valueOf(log.getCreatedDate().getTime() / 1000L));
-		Collection<Log> searchResult = client.findLogs(searchMap);
-		assertTrue("Failed to search based on create times",
-				searchResult.size() == 1 && searchResult.contains(log));
+			// check the _start_ search condition
+			searchParameters.put("start",
+					String.valueOf(first.getCreatedDate().getTime() / 1000L));
+			searchResult = client.findLogs(searchParameters);
+			assertTrue(
+					"failed to search based on the start time, expected 3 found "
+							+ searchResult.size(), searchResult.size() == 3);
+
+			searchParameters.clear();
+			searchParameters.put("start",
+					String.valueOf(third.getCreatedDate().getTime() / 1000L));
+			searchResult = client.findLogs(searchParameters);
+			assertTrue(
+					"failed to search based on the start time, expect 1 found "
+							+ searchResult.size(), searchResult.size() == 1);
+
+			// Check the _end_ search condition
+			searchParameters.clear();
+			searchParameters.put("end",
+					String.valueOf(first.getCreatedDate().getTime() / 1000L));
+			searchResult = client.findLogs(searchParameters);
+			assertTrue(
+					"failed to search based on the end time, expected 0 found "
+							+ searchResult, searchResult.size() == 0);
+			searchParameters.clear();
+			searchParameters.put("end",
+					String.valueOf(first.getCreatedDate().getTime() / 1000L));
+			searchResult = client.findLogs(searchParameters);
+			assertTrue(
+					"failed to search based on the end time, expected 0 found "
+							+ searchResult, searchResult.size() == 0);
+			searchParameters.clear();
+			searchParameters.put("end", String.valueOf((third.getCreatedDate()
+					.getTime() / 1000L) + 1));
+			searchResult = client.findLogs(searchParameters);
+			assertTrue(
+					"failed to search based on the end time, expected 3 found "
+							+ searchResult, searchResult.size() == 3);
+
+			// check the _start_ and _end_ search conditions
+			searchParameters.clear();
+			searchParameters.put("start",
+					String.valueOf(first.getCreatedDate().getTime() / 1000L));
+			searchParameters.put("end",
+					String.valueOf(first.getCreatedDate().getTime() / 1000L));
+			searchResult = client.findLogs(searchParameters);
+			assertTrue(
+					"failed to search based on the start & end time, expected 1 found "
+							+ searchResult, searchResult.size() == 1);
+			searchParameters.clear();
+			searchParameters.put("start",
+					String.valueOf(first.getCreatedDate().getTime() / 1000L));
+			searchParameters.put("end",
+					String.valueOf(third.getCreatedDate().getTime() / 1000L));
+			searchResult = client.findLogs(searchParameters);
+			assertTrue(
+					"failed to search based on the start & end time, expected 3 found "
+							+ searchResult, searchResult.size() == 3);
+
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		} finally {
+			// clean up
+			searchResult = client.findLogsBySearch("Test log* for time");
+			client.delete(searchResult);
+		}
 	}
 
 	/**
