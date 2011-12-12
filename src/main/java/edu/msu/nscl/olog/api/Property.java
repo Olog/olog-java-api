@@ -5,32 +5,81 @@
 
 package edu.msu.nscl.olog.api;
 
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Map;
+import java.util.Map.Entry;
+import java.util.Set;
+
 /**
- *
+ * 
  * @author berryman
  */
 public class Property {
 	private final String name;
-        private final String value;
+	private final Map<String, String> attributes;
 
 	/**
 	 * @param xmlProperty
 	 */
 	Property(XmlProperty xmlProperty) {
 		this.name = xmlProperty.getName();
-                this.value = xmlProperty.getValue();
+		this.attributes = Collections.unmodifiableMap(xmlProperty.getAttributes());
 	}
 
+	/**
+	 * 
+	 * @return
+	 */
 	public String getName() {
 		return name;
 	}
 
-	public String getValue() {
-		return value;
+	/**
+	 * 
+	 * @return
+	 */
+	public Set<String> getAttributes(){
+		return this.attributes.keySet();
 	}
+	
+	/**
+	 * 
+	 * @return
+	 */
+	public Collection<String> getAttributeValues(){
+		return this.attributes.values();
+	}
+	
+	/**
+	 * 
+	 * @param attribute
+	 * @return
+	 */
+	public boolean containsAttribute(String attribute){
+		return this.attributes.containsKey(attribute);
+	}
+	
+	/**
+	 * 
+	 * @param attribute
+	 * @return
+	 */
+	public String getAttributeValue(String attribute){
+		return this.attributes.get(attribute);
+	}
+	
+	/**
+	 * 
+	 * @return
+	 */
+	public Set<Entry<String,String>> getEntrySet(){
+		return this.attributes.entrySet();
+	}
+
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see java.lang.Object#hashCode()
 	 */
 	@Override
@@ -43,7 +92,7 @@ public class Property {
 
 	/*
 	 * (non-Javadoc)
-	 *
+	 * 
 	 * @see java.lang.Object#equals(java.lang.Object)
 	 */
 	@Override
