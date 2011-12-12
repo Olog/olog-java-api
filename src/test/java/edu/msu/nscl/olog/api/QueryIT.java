@@ -292,16 +292,16 @@ public class QueryIT {
 			searchParameters.put("start",
 					String.valueOf(first.getCreatedDate().getTime() / 1000L));
 			searchParameters.put("end",
-					String.valueOf((first.getCreatedDate().getTime() / 1000L)+1));
+					String.valueOf((first.getCreatedDate().getTime() / 1000L)));
 			searchResult = client.findLogs(searchParameters);
 			assertTrue(
 					"failed to search based on the start & end time, expected 1 found "
-							+ searchResult, searchResult.size() == 1);
+							+ searchResult.size(), searchResult.size() == 1);
 			searchParameters.clear();
 			searchParameters.put("start",
 					String.valueOf(first.getCreatedDate().getTime() / 1000L));
 			searchParameters.put("end",
-					String.valueOf((third.getCreatedDate().getTime() / 1000L)+1));
+					String.valueOf((third.getCreatedDate().getTime() / 1000L)));
 			searchResult = client.findLogs(searchParameters);
 			assertTrue(
 					"failed to search based on the start & end time, expected 3 found "
