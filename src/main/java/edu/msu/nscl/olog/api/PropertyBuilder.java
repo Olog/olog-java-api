@@ -5,6 +5,7 @@
 
 package edu.msu.nscl.olog.api;
 
+import java.util.HashMap;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -16,7 +17,7 @@ public class PropertyBuilder {
 
 	// required
 	private String name;
-	private Map<String, String> attributes;
+	private Map<String, String> attributes = new HashMap<String, String>();;
 
 	/**
 	 * @param name
@@ -27,17 +28,6 @@ public class PropertyBuilder {
 		propertyBuilder.name = name;
 		return propertyBuilder;
 	}
-
-	// /**
-	// * @param name
-	// * @param value
-	// */
-	// public static PropertyBuilder property(String name, String value) {
-	// PropertyBuilder propertyBuilder = new PropertyBuilder();
-	// propertyBuilder.name = name;
-	// propertyBuilder.value = value;
-	// return propertyBuilder;
-	// }
 
 	public static PropertyBuilder property(Property property) {
 		PropertyBuilder propertyBuilder = new PropertyBuilder();
