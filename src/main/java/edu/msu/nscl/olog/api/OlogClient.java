@@ -6,7 +6,6 @@ import java.util.Map;
 
 import javax.ws.rs.core.MultivaluedMap;
 
-import net.coobird.thumbnailator.Thumbnails;
 import org.apache.jackrabbit.webdav.DavException;
 
 /**

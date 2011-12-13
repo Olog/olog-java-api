@@ -1,8 +1,6 @@
 package edu.msu.nscl.olog.api;
 
 import static edu.msu.nscl.olog.api.LogBuilder.log;
-import static edu.msu.nscl.olog.api.LogUtil.getLogSubjects;
-import static edu.msu.nscl.olog.api.LogUtil.toLogs;
 import static edu.msu.nscl.olog.api.LogbookBuilder.logbook;
 import static edu.msu.nscl.olog.api.TagBuilder.tag;
 import static org.junit.Assert.assertFalse;
@@ -14,12 +12,10 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.HashMap;
 import java.util.Hashtable;
 import java.util.Map;
 
 import org.apache.jackrabbit.webdav.DavException;
-import org.hsqldb.lib.HashSet;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;

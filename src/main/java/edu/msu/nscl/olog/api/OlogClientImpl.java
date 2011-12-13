@@ -1,7 +1,5 @@
 package edu.msu.nscl.olog.api;
 
-import static edu.msu.nscl.olog.api.TagBuilder.tag;
-
 import java.io.ByteArrayInputStream;
 import java.io.ByteArrayOutputStream;
 import java.io.File;
