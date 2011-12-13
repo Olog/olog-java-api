@@ -196,14 +196,6 @@ public interface OlogClient {
 			throws OlogException;
 
 	/**
-	 * Update a Tag <tt>tag</tt>
-	 * 
-	 * @param tag
-	 * @throws OlogException
-	 */
-	public Tag update(TagBuilder tag) throws OlogException;
-
-	/**
 	 * Update Tag <tt>tag </tt> by adding it to Log with name <tt>logName</tt>
 	 * 
 	 * @param tag
@@ -226,14 +218,6 @@ public interface OlogClient {
 	 */
 	public Tag update(TagBuilder tag, Collection<Long> logIds)
 			throws OlogException;
-
-	/**
-	 * Add a new logbook <tt>logbook</tt>
-	 * 
-	 * @param logbookBuilder
-	 * @throws OlogException
-	 */
-	public Logbook update(LogbookBuilder logbookBuilder) throws OlogException;
 
 	/**
 	 * Add Logbook <tt>logbook</tt> to the log <tt>logId</tt>

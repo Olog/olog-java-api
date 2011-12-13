@@ -586,13 +586,6 @@ public class OlogClientImpl implements OlogClient {
 	}
 
 	@Override
-	public Tag update(TagBuilder tag) throws OlogException {
-		return null;
-		// TODO Auto-generated method stub
-
-	}
-
-	@Override
 	public Tag update(TagBuilder tag, Long logId) throws OlogException {
 		final XmlTag xmlTag = tag.toXml();
 		final Long appendLogId = logId;
@@ -631,13 +624,6 @@ public class OlogClientImpl implements OlogClient {
 				
 			}
 		});
-	}
-
-	@Override
-	public Logbook update(LogbookBuilder logbookBuilder) throws OlogException {
-		return null;
-		// TODO Auto-generated method stub
-
 	}
 
 	@Override
