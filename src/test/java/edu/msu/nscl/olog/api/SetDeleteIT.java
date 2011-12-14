@@ -3,6 +3,7 @@ package edu.msu.nscl.olog.api;
 import static edu.msu.nscl.olog.api.LogBuilder.log;
 import static edu.msu.nscl.olog.api.LogbookBuilder.logbook;
 import static edu.msu.nscl.olog.api.TagBuilder.tag;
+import static edu.msu.nscl.olog.api.PropertyBuilder.*;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
@@ -249,12 +250,12 @@ public class SetDeleteIT {
 			}
 			if (f.exists()) {
 				boolean success = f.delete();
-//				assertTrue("attachment File clean up failed", success);
+				// assertTrue("attachment File clean up failed", success);
 			}
 		}
 	}
 
-	// @Test
+	@Test
 	public void attachImageFileToLogId() throws IOException, DavException {
 		Log testLog = null;
 		File f = null;
@@ -269,6 +270,30 @@ public class SetDeleteIT {
 				client.delete("the_homercar.jpg", testLog.getId());
 				client.delete(testLog.getId());
 			}
+		}
+	}
+
+	/**
+	 * create a log with a property and delete it
+	 */
+	@Test
+	public void setLogWithProperty() {
+		PropertyBuilder testProp = property("test Property").attribute(
+				"attributeName", "attributeValue");
+		LogBuilder log = log("testLog").description("test Log").level("info")
+				.in(defaultLogBook).with(defaultTag).property(testProp);
+		Log setLog = null;
+		try {
+			setLog = client.set(log);
+			assertTrue("failed to set test log", setLog != null);
+			assertTrue(
+					"check if property correctly attached",
+					client.findLogById(setLog.getId()).getProperty(
+							testProp.build().getName()) == testProp.build());
+		} catch (OlogException e) {
+			fail(e.getMessage());
+		} finally{
+			client.delete(setLog.getId());
 		}
 	}
 
