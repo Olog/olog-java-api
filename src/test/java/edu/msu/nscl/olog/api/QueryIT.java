@@ -121,6 +121,12 @@ public class QueryIT {
 		assertTrue(client.listLogs().size() == logs.size());
 	}
 
+	@Test
+	public void querySingleLog() {
+		assertTrue("failed to search using the logId",
+				client.findLogById(pvk_01.getId()).equals(pvk_01));
+	}
+
 	/**
 	 * Test searching based on
 	 */
@@ -267,19 +273,19 @@ public class QueryIT {
 					"failed to search based on the end time, expected 0 found "
 							+ searchResult.size(), searchResult.size() == 0);
 			searchParameters.clear();
-			searchParameters.put("end",
-					String.valueOf((first.getCreatedDate().getTime() / 1000L)-1));
+			searchParameters.put("end", String.valueOf((first.getCreatedDate()
+					.getTime() / 1000L) - 1));
 			searchResult = client.findLogs(searchParameters);
-			assertTrue(
-					"failed to search based on the end time, expected "+initialLogCount+" found "
-							+ searchResult.size(), searchResult.size() == initialLogCount);
+			assertTrue("failed to search based on the end time, expected "
+					+ initialLogCount + " found " + searchResult.size(),
+					searchResult.size() == initialLogCount);
 			searchParameters.clear();
 			searchParameters.put("end", String.valueOf((third.getCreatedDate()
 					.getTime() / 1000L) + 1));
 			searchResult = client.findLogs(searchParameters);
-			assertTrue(
-					"failed to search based on the end time, expected "+(initialLogCount+3)+" found "
-							+ searchResult, searchResult.size() == (initialLogCount+3));
+			assertTrue("failed to search based on the end time, expected "
+					+ (initialLogCount + 3) + " found " + searchResult,
+					searchResult.size() == (initialLogCount + 3));
 
 			// check the _start_ and _end_ search conditions
 			searchParameters.clear();
