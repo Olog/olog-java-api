@@ -288,11 +288,12 @@ public class SetDeleteIT {
 			assertTrue("failed to set test log", setLog != null);
 			assertTrue(
 					"check if property correctly attached",
-					client.findLogById(setLog.getId()).getProperty(
-							testProp.build().getName()) == testProp.build());
-		} catch (OlogException e) {
+					client.findLogById(setLog.getId())
+							.getProperty(testProp.build().getName())
+							.equals(testProp.build()));
+		} catch (Exception e) {
 			fail(e.getMessage());
-		} finally{
+		} finally {
 			client.delete(setLog.getId());
 		}
 	}
