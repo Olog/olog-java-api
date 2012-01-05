@@ -50,25 +50,24 @@ public class UpdateIT {
 	@Test
 	public void updateLog() {
 		Log testlog1 = null;
+		Log updatedTestLog1 = null;
 		try {
 			testlog1 = client.set(log().description("testlog1_updateLog")
 					.appendDescription("test log").level("Info")
 					.appendToLogbook(defaultLogbook));
-			// TODO add check
-			// assertTrue(
-			// "created testlog already contans testTag",
-			// client.findLogsBySearch(testlog1.getSubject()).iterator().next()
-			// .getTag(defaultTag.build().getName()) == null);
-			client.update(log(testlog1).appendTag(defaultTag));
-			// TODO add check
-			// assertTrue(
-			// "failed to update log with tag",
-			// client.findLogsBySearch(testlog1.getSubject()).iterator().next()
-			// .getTag(defaultTag.build().getName()) != null);
+			assertTrue("created testlog already contains testTag", client
+					.findLogsBySearch(testlog1.getDescription()).iterator()
+					.next().getTag(defaultTag.build().getName()) == null);
+			updatedTestLog1 = client
+					.update(log(testlog1).appendTag(defaultTag));
+			assertTrue("failed to update log with tag", client
+					.findLogsBySearch(testlog1.getDescription()).iterator()
+					.next().getTag(defaultTag.build().getName()) != null);
 		} finally {
-			if (testlog1 != null) {
+			if (testlog1 != null)
 				client.delete(testlog1.getId());
-			}
+			if (updatedTestLog1 != null)
+				client.delete(updatedTestLog1.getId());
 		}
 	}
 
@@ -103,27 +102,25 @@ public class UpdateIT {
 			client.update(testTag, testLog1.getId());
 			// check if the log was updated with the logbook
 			// TODO add check
-			// assertTrue(
-			// "failed to update testLog1 with testTag1",
-			// checkEqualityWithoutID(
-			// client.findLogsByTag(testTag.build().getName()),
-			// testLog1));
+			assertTrue(
+					"failed to update testLog1 with testTag1",
+					checkEqualityWithoutID(
+							client.findLogsByTag(testTag.build().getName()),
+							testLog1));
 			// add testLog2 to testTag
 			client.update(testTag, testLog2.getId());
 			// check if the testLog2 was updated with the logbook
-			// TODO add check
-			// assertTrue(
-			// "failed to update testLog2 with testTag1",
-			// checkEqualityWithoutID(
-			// client.findLogsByTag(testTag.build().getName()),
-			// testLog2));
+			assertTrue(
+					"failed to update testLog2 with testTag1",
+					checkEqualityWithoutID(
+							client.findLogsByTag(testTag.build().getName()),
+							testLog2));
 			// check testLog1 was not affected by the update
-			// TODO add check
-			// assertTrue(
-			// "failed to update testLog1 with testTag1",
-			// checkEqualityWithoutID(
-			// client.findLogsByTag(testTag.build().getName()),
-			// testLog1));
+			assertTrue(
+					"failed to update testLog1 with testTag1",
+					checkEqualityWithoutID(
+							client.findLogsByTag(testTag.build().getName()),
+							testLog1));
 		} catch (Exception ex) {
 			fail(ex.getMessage());
 		} finally {
@@ -158,12 +155,11 @@ public class UpdateIT {
 			logs.add(testLog2);
 			client.update(testTag, LogUtil.getLogIds(logs));
 			// check if the logs were added to the testTag
-			// TODO add check
-			// assertTrue(
-			// "failed to update a group of logs(testLog1, testLog2) with testTag2",
-			// checkEqualityWithoutID(
-			// client.findLogsByTag(testTag.build().getName()),
-			// logs));
+			assertTrue(
+					"failed to update a group of logs(testLog1, testLog2) with testTag2",
+					checkEqualityWithoutID(
+							client.findLogsByTag(testTag.build().getName()),
+							logs));
 		} catch (Exception e) {
 			fail(e.getMessage());
 		} finally {
@@ -203,28 +199,25 @@ public class UpdateIT {
 			// add testLog1 to logbook
 			client.update(logbook, testLog1.getId());
 			// check if the log was updated with the logbook
-			// TODO add check
-			// assertTrue(
-			// "failed to update testLog1 with testlogbook1",
-			// checkEqualityWithoutID(
-			// client.findLogsByLogbook(logbook.build().getName()),
-			// testLog1));
+			assertTrue(
+					"failed to update testLog1 with testlogbook1",
+					checkEqualityWithoutID(
+							client.findLogsByLogbook(logbook.build().getName()),
+							testLog1));
 			// add testLog2 to logbook
 			client.update(logbook, testLog2.getId());
 			// check if the testLog2 was updated with the logbook
-			// TODO add check
-			// assertTrue(
-			// "failed to update testLog2 with testLogbook1",
-			// checkEqualityWithoutID(
-			// client.findLogsByLogbook(logbook.build().getName()),
-			// testLog2));
+			assertTrue(
+					"failed to update testLog2 with testLogbook1",
+					checkEqualityWithoutID(
+							client.findLogsByLogbook(logbook.build().getName()),
+							testLog2));
 			// check if testLog1 was not affected by the update
-			// TODO add check
-			// assertTrue(
-			// "failed to update testLog1 with testlogbook1",
-			// checkEqualityWithoutID(
-			// client.findLogsByLogbook(logbook.build().getName()),
-			// testLog1));
+			assertTrue(
+					"failed to update testLog1 with testlogbook1",
+					checkEqualityWithoutID(
+							client.findLogsByLogbook(logbook.build().getName()),
+							testLog1));
 		} catch (Exception e) {
 			fail(e.getMessage());
 		} finally {
@@ -261,12 +254,11 @@ public class UpdateIT {
 			logs.add(testLog2);
 			client.update(logbook, LogUtil.getLogIds(logs));
 			// check if the logs were added to the logbook
-			// TODO add check
-			// assertTrue(
-			// "failed to update a group of logs(testLog1, testLog2) with testLogbook2",
-			// checkEqualityWithoutID(
-			// client.findLogsByLogbook(logbook.build().getName()),
-			// logs));
+			assertTrue(
+					"failed to update a group of logs(testLog1, testLog2) with testLogbook2",
+					checkEqualityWithoutID(
+							client.findLogsByLogbook(logbook.build().getName()),
+							logs));
 		} catch (Exception e) {
 			fail(e.getMessage());
 		} finally {
@@ -278,53 +270,48 @@ public class UpdateIT {
 		}
 	}
 
-	// /**
-	// * This seems like an incorrect equality test but don't know how to test
-	// if
-	// * the log I am sending has indeed been set/added since I don't have the
-	// id
-	// * in the builder
-	// *
-	// * @param returnedLogs
-	// * @param setLogs
-	// * @return
-	// */
-	//
-	// private static boolean checkEqualityWithoutID(Collection<Log>
-	// returnedLogs,
-	// Collection<Log> setLogs) {
-	// Collection<String> logSubjects = LogUtil.getLogSubjects(returnedLogs);
-	// for (Log log : setLogs) {
-	// if (!logSubjects.contains(log.getSubject()))
-	// return false;
-	// }
-	// return true;
-	// }
-	//
-	// /**
-	// * This seems like an incorrect equality test but don't know how to test
-	// if
-	// * the log I am sending has indeed been set/added since I don't have the
-	// id
-	// * in the builder
-	// *
-	// * @param returnedLogs
-	// * @param setLogs
-	// * @return
-	// */
-	// private static boolean checkEqualityWithoutID(Collection<Log>
-	// returnedLogs,
-	// LogBuilder setLog) {
-	// return checkEqualityWithoutID(returnedLogs, setLog.build());
-	// }
-	//
-	// private static boolean checkEqualityWithoutID(Collection<Log>
-	// returnedLogs,
-	// Log setLog) {
-	// Collection<String> logSubjects = LogUtil.getLogSubjects(returnedLogs);
-	// if (!logSubjects.contains(setLog.getSubject()))
-	// return false;
-	// return true;
-	// }
+	/**
+	 * This seems like an incorrect equality test but don't know how to test if
+	 * the log I am sending has indeed been set/added since I don't have the id
+	 * in the builder
+	 * 
+	 * @param returnedLogs
+	 * @param setLogs
+	 * @return
+	 */
+
+	private static boolean checkEqualityWithoutID(Collection<Log> returnedLogs,
+			Collection<Log> setLogs) {
+		Collection<String> logSubjects = LogUtil
+				.getLogDescriptions(returnedLogs);
+		for (Log log : setLogs) {
+			if (!logSubjects.contains(log.getDescription()))
+				return false;
+		}
+		return true;
+	}
+
+	/**
+	 * This seems like an incorrect equality test but don't know how to test if
+	 * the log I am sending has indeed been set/added since I don't have the id
+	 * in the builder
+	 * 
+	 * @param returnedLogs
+	 * @param setLogs
+	 * @return
+	 */
+	private static boolean checkEqualityWithoutID(Collection<Log> returnedLogs,
+			LogBuilder setLog) {
+		return checkEqualityWithoutID(returnedLogs, setLog.build());
+	}
+
+	private static boolean checkEqualityWithoutID(Collection<Log> returnedLogs,
+			Log setLog) {
+		Collection<String> logSubjects = LogUtil
+				.getLogDescriptions(returnedLogs);
+		if (!logSubjects.contains(setLog.getDescription()))
+			return false;
+		return true;
+	}
 
 }

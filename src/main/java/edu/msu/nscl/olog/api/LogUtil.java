@@ -3,6 +3,7 @@
  */
 package edu.msu.nscl.olog.api;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.HashSet;
@@ -118,5 +119,13 @@ public class LogUtil {
 		return logs;
 	}
 	
+	public static Collection<String> getLogDescriptions(
+			Collection<Log> logs) {
+		Collection<String> logDescriptions = new ArrayList<String>();
+		for (Log log : logs) {
+			logDescriptions.add(log.getDescription());
+		}
+		return logDescriptions;
+	}
 
 }
