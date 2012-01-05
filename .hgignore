@@ -9,3 +9,8 @@ glob:ologAPI/target/*
 \.conflict\~$
 glob:target/*
 
+syntax: glob
+testfile.txt
+.settings/*
+.project
+.classpath
