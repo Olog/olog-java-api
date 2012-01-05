@@ -46,8 +46,7 @@ public class QueryIT {
 
 	private static int initialLogCount;
 
-	private static OlogClient client = OlogClientBuilder.serviceURL()
-			.withHTTPAuthentication(true).create();
+	private static OlogClient client;
 	// Logs
 	static private Log pvk_01;
 	static private Log pvk_02;
@@ -65,6 +64,8 @@ public class QueryIT {
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
+		client = OlogClientBuilder.serviceURL().withHTTPAuthentication(true)
+				.create();
 
 		initialLogCount = client.listLogs().size();
 		// Add the tags and logbooks.
@@ -74,15 +75,19 @@ public class QueryIT {
 		client.set(tagB);
 		client.set(tagC);
 		client.set(tagStar);
-		pvk_01 = client.set(log("pvk:01<first>").description("first details")
-				.level("Info").in(book).in(book2).with(tagA));
-		pvk_02 = client.set(log("pvk:02<second>").description("second details")
-				.level("Info").in(book).with(tagA).with(tagB));
-		pvk_03 = client.set(log("pvk:03<second>").description("some details")
-				.level("Info").in(book).with(tagB).with(tagC));
-		distinctName = client.set(log("distinctName")
-				.description("some details").level("Info").in(book)
-				.with(tagStar));
+		pvk_01 = client.set(log()
+				.description("pvk:01<first> " + "first details").level("Info")
+				.appendToLogbook(book).appendToLogbook(book2).appendTag(tagA));
+		pvk_02 = client.set(log()
+				.description("pvk:02<second> " + "second details")
+				.level("Info").appendToLogbook(book).appendTag(tagA)
+				.appendTag(tagB));
+		pvk_03 = client.set(log()
+				.description("pvk:03<second> " + "some details").level("Info")
+				.appendToLogbook(book).appendTag(tagB).appendTag(tagC));
+		distinctName = client.set(log()
+				.description("distinctName: " + "some details").level("Info")
+				.appendToLogbook(book).appendTag(tagStar));
 	}
 
 	@AfterClass
@@ -155,8 +160,9 @@ public class QueryIT {
 		map.add("logbook", "book");
 		map.add("logbook", "book2");
 		logs = client.findLogs(map);
-		assertTrue("search for all logs in logbook book OR book2 failed",
-				logs.size() == 4);
+		assertTrue(
+				"search for all logs in logbook book OR book2 failed, expected 4 found "
+						+ logs.size(), logs.size() == 4);
 
 	}
 
@@ -192,10 +198,10 @@ public class QueryIT {
 						&& queryResult.contains(pvk_01));
 		// search for "some detail" which matches multiple logs.
 		map.clear();
-		map.add("search", "some details");
+		map.add("search", "*some details");
 		queryResult = client.findLogs(map);
 		assertTrue(
-				"Failed to search based on the log descrition expected 2 found "
+				"Failed to search based on the log description expected 2 found "
 						+ queryResult.size(),
 				queryResult.size() == 2 && queryResult.contains(pvk_03)
 						&& queryResult.contains(distinctName));
@@ -230,22 +236,25 @@ public class QueryIT {
 			synchronized (this) {
 				initialLogCount = client.listLogs().size();
 				this.wait(1000L);
-				client.set(log("Test log1 for time").level("info").in(book)
-						.description("test log"));
+				client.set(log().description("Test log1 for time")
+						.appendDescription("test log").level("info")
+						.appendToLogbook(book));
 				this.wait(1000L);
-				client.set(log("Test log2 for time").level("info").in(book)
-						.description("test log"));
+				client.set(log().description("Test log2 for time")
+						.appendDescription("test log").level("info")
+						.appendToLogbook(book));
 				this.wait(1000L);
-				client.set(log("Test log3 for time").level("info").in(book)
-						.description("test log"));
+				client.set(log().description("Test log3 for time")
+						.appendDescription("test log").level("info")
+						.appendToLogbook(book));
 				this.wait(1000L);
 				// XXX
 				// A search is required because the response from the service
 				// for a put only contains Id info and not the create time.
 
-				first = client.findLogsBySearch("Test log1 for time")
+				first = client.findLogsBySearch("Test log1 for time*")
 						.iterator().next();
-				third = client.findLogsBySearch("Test log3 for time")
+				third = client.findLogsBySearch("Test log3 for time*")
 						.iterator().next();
 			}
 
@@ -311,7 +320,7 @@ public class QueryIT {
 			e.printStackTrace();
 		} finally {
 			// clean up
-			searchResult = client.findLogsBySearch("Test log* for time");
+			searchResult = client.findLogsBySearch("Test log* for time*");
 			client.delete(searchResult);
 		}
 	}
