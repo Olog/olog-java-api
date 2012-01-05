@@ -162,7 +162,7 @@ public class SetDeleteIT {
 				.appendToLogbook(defaultLogBook);
 
 		Map<String, String> map = new Hashtable<String, String>();
-		map.put("search", "testLog");
+		map.put("search", "testLog*");
 		Log result = null;
 
 		try {
@@ -190,10 +190,10 @@ public class SetDeleteIT {
 	@Test
 	public void setLogsTest() {
 		LogBuilder log1 = log().description("testLog1")
-				.description("some details").level("Info")
+				.appendDescription("some details").level("Info")
 				.appendToLogbook(defaultLogBook);
 		LogBuilder log2 = log().description("testLog2")
-				.description("some details").level("Info")
+				.appendDescription("some details").level("Info")
 				.appendToLogbook(defaultLogBook);
 		Collection<LogBuilder> logs = new ArrayList<LogBuilder>();
 		logs.add(log1);
@@ -212,9 +212,8 @@ public class SetDeleteIT {
 					result.size() == logs.size());
 			// query to check if the logs are indeed in olog
 			queryResult = client.findLogs(map);
-			// TODO add check
-			// assertTrue("set logs not found in the olog db ",
-			// checkEqualityWithoutID(queryResult, logs));
+			assertTrue("set logs not found in the olog db ",
+					checkEqualityWithoutID(queryResult, logs));
 		} catch (Exception e) {
 			fail(e.getCause().toString());
 		} finally {
@@ -286,7 +285,7 @@ public class SetDeleteIT {
 	/**
 	 * create a log with a property and delete it
 	 */
-	@Test
+	//@Test
 	public void setLogWithProperty() {
 		PropertyBuilder testProp = property("test Property").attribute(
 				"attributeName", "attributeValue");
@@ -337,7 +336,7 @@ public class SetDeleteIT {
 	 * Destructive operation which removes the tag from all other logs and only
 	 * adds it to the specified log
 	 */
-	// @Test
+	@Test
 	public void setTag2LogTest() {
 
 		String tagName = defaultTag.toXml().getName();
@@ -353,9 +352,8 @@ public class SetDeleteIT {
 			// Set Tag on single Log
 			client.set(defaultTag, setLogId.getId());
 			Collection<Log> result = client.findLogs(map);
-			// TODO add check
-			// assertTrue("failed to set tag on log " + setLogId.getId(),
-			// checkEqualityWithoutID(result, defaultLog3));
+			assertTrue("failed to set tag on log " + setLogId.getId(),
+					checkEqualityWithoutID(result, defaultLog3));
 		} catch (Exception e) {
 			fail("setTag2Log" + e.getMessage());
 		} finally {
@@ -363,7 +361,7 @@ public class SetDeleteIT {
 		}
 	}
 
-	// @Test
+	@Test
 	public void setTag2LogsTest() {
 		String tagName = defaultTag.toXml().getName();
 
@@ -378,11 +376,10 @@ public class SetDeleteIT {
 			client.set(defaultTag, LogUtil.getLogIds(setLogsIds));
 			// check if the Tags was added
 			queryResult = client.findLogs(map);
-			// TODO add check
-			// assertTrue(
-			// "Failed to add " + tagName + " to "
-			// + LogUtil.getLogIds(setLogsIds).toString(),
-			// checkEqualityWithoutID(queryResult, logs1));
+			assertTrue(
+					"Failed to add " + tagName + " to "
+							+ LogUtil.getLogIds(setLogsIds).toString(),
+					checkEqualityWithoutID(queryResult, logs1));
 		} catch (Exception e) {
 			fail("setTag2Log" + e.getMessage());
 		} finally {
@@ -394,7 +391,7 @@ public class SetDeleteIT {
 	 * Test destructive set on a logbook, the logbook should be added to only
 	 * those logs specified and removed from all others
 	 */
-	// @Test
+//	 @Test
 	public void setLogbook2logTest() {
 		LogbookBuilder testLogBook = logbook("testLogBook").owner(logbookOwner);
 		Map<String, String> map = new Hashtable<String, String>();
@@ -417,8 +414,8 @@ public class SetDeleteIT {
 					.next());
 			queryResult = client.findLogs(map);
 			// TODO add check
-			// assertTrue("failed to set a logbook onto a log",
-			// checkEqualityWithoutID(queryResult, logs2));
+			assertTrue("failed to set a logbook onto a log",
+					checkEqualityWithoutID(queryResult, logs2));
 
 		} catch (Exception e) {
 
@@ -432,6 +429,44 @@ public class SetDeleteIT {
 	@Test
 	public void setLogbook2LogsTest() {
 
+	}
+
+	/**
+	 * This seems like an incorrect equality test but don't know how to test if
+	 * the log I am sending has indeed been set/added since I don't have the id
+	 * in the builder
+	 * 
+	 * @param returnedLogs
+	 * @param setLogs
+	 * @return
+	 */
+	private static boolean checkEqualityWithoutID(Collection<Log> returnedLogs,
+			Collection<LogBuilder> setLogs) {
+		Collection<String> logSubjects = LogUtil
+				.getLogDescriptions(returnedLogs);
+		for (LogBuilder logBuilder : setLogs) {
+			if (!logSubjects.contains(logBuilder.build().getDescription()))
+				return false;
+		}
+		return true;
+	}
+
+	/**
+	 * This seems like an incorrect equality test but don't know how to test if
+	 * the log I am sending has indeed been set/added since I don't have the id
+	 * in the builder
+	 * 
+	 * @param returnedLogs
+	 * @param setLogs
+	 * @return
+	 */
+	private static boolean checkEqualityWithoutID(Collection<Log> returnedLogs,
+			LogBuilder setLog) {
+		Collection<String> logSubjects = LogUtil
+				.getLogDescriptions(returnedLogs);
+		if (!logSubjects.contains(setLog.build().getDescription()))
+			return false;
+		return true;
 	}
 
 }
