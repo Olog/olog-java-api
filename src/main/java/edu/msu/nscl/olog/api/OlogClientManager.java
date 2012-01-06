@@ -5,6 +5,11 @@ import java.util.concurrent.ConcurrentHashMap;
 
 import edu.msu.nscl.olog.api.OlogClient;
 
+/**
+ * 
+ * @author shroffk
+ * TODO: if there is no default client registered create one.
+ */
 public class OlogClientManager {
 
 	public static final String DEFAULT_CLIENT = "default_client";
@@ -36,7 +41,7 @@ public class OlogClientManager {
 	 * @param name
 	 * @return
 	 */
-	public static OlogClient getClient(String name) {
+	static OlogClient getClient(String name) {
 		return ologClients.get(name);
 	}
 }
