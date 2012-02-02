@@ -368,7 +368,7 @@ public class OlogClientImpl implements OlogClient {
 				for (XmlProperty xmlProperty : xmlProperties.getProperties()) {
 					allProperties.add(new Property(xmlProperty));
 				}
-				return null;
+				return allProperties;
 			}
 		});
 	}
@@ -930,7 +930,7 @@ public class OlogClientImpl implements OlogClient {
 				service.path("properties").path(propertyName)
 						.accept(MediaType.TEXT_XML)
 						.accept(MediaType.APPLICATION_JSON)
-						.delete(PropertyBuilder.property(propertyName).toXml());
+						.delete(new XmlProperty(propertyName));
 			}
 		});
 	}
