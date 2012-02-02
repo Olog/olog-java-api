@@ -16,6 +16,7 @@ import java.util.Collections;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.ExecutorService;
@@ -244,7 +245,7 @@ public class OlogClientImpl implements OlogClient {
 			return this;
 		}
 
-		public OlogClientImpl create() throws Exception{
+		public OlogClientImpl create() throws Exception {
 			if (this.protocol.equalsIgnoreCase("http")) { //$NON-NLS-1$
 				this.clientConfig = new DefaultClientConfig();
 			} else if (this.protocol.equalsIgnoreCase("https")) { //$NON-NLS-1$
@@ -268,7 +269,7 @@ public class OlogClientImpl implements OlogClient {
 									return true;
 								}
 							}, sslContext));
-				}				
+				}
 			}
 			this.username = ifNullReturnPreferenceValue(this.username,
 					"username", "username");
@@ -289,7 +290,7 @@ public class OlogClientImpl implements OlogClient {
 		}
 
 	}
-	
+
 	private OlogClientImpl(URI ologURI, URI ologJCRURI, ClientConfig config,
 			boolean withHTTPBasicAuthFilter, String username, String password,
 			ExecutorService executor) {
@@ -351,6 +352,24 @@ public class OlogClientImpl implements OlogClient {
 				return allTags;
 			}
 
+		});
+	}
+
+	@Override
+	public Collection<Property> listProperties() throws OlogException {
+		return wrappedSubmit(new Callable<Collection<Property>>() {
+			@Override
+			public Collection<Property> call() throws Exception {
+				Collection<Property> allProperties = new HashSet<Property>();
+				XmlProperties xmlProperties = service.path("properties")
+						.accept(MediaType.APPLICATION_XML)
+						.accept(MediaType.APPLICATION_JSON)
+						.get(XmlProperties.class);
+				for (XmlProperty xmlProperty : xmlProperties.getProperties()) {
+					allProperties.add(new Property(xmlProperty));
+				}
+				return null;
+			}
 		});
 	}
 
@@ -539,7 +558,6 @@ public class OlogClientImpl implements OlogClient {
 		}
 
 		public SetLogbook(LogbookBuilder logbook, Long logId) {
-			// TODO Auto-generated constructor stub
 			this.logbook = logbook;
 		}
 
@@ -553,6 +571,31 @@ public class OlogClientImpl implements OlogClient {
 					.put(ClientResponse.class, xmlLogbook);
 			return new Logbook(response.getEntity(XmlLogbook.class));
 			// return null;
+		}
+
+	}
+
+	@Override
+	public Property set(PropertyBuilder property) {
+		return wrappedSubmit(new SetProperty(property));
+	}
+
+	private class SetProperty implements Callable<Property> {
+		private final PropertyBuilder property;
+
+		SetProperty(PropertyBuilder property) {
+			this.property = property;
+		}
+
+		@Override
+		public Property call() throws Exception {
+			XmlProperty xmlProperty = property.toXml();
+			ClientResponse clientResponse = service.path("properties")
+					.path(xmlProperty.getName())
+					.accept(MediaType.APPLICATION_XML)
+					.accept(MediaType.APPLICATION_JSON)
+					.put(ClientResponse.class, xmlProperty);
+			return new Property(clientResponse.getEntity(XmlProperty.class));
 		}
 
 	}
@@ -770,7 +813,8 @@ public class OlogClientImpl implements OlogClient {
 
 			@Override
 			public Log call() throws Exception {
-				XmlLog xmlLog =  service.path("logs").path(logId.toString()).accept(MediaType.APPLICATION_XML)
+				XmlLog xmlLog = service.path("logs").path(logId.toString())
+						.accept(MediaType.APPLICATION_XML)
 						.accept(MediaType.APPLICATION_JSON).get(XmlLog.class);
 				return new Log(xmlLog);
 			}
@@ -873,6 +917,21 @@ public class OlogClientImpl implements OlogClient {
 						.accept(MediaType.APPLICATION_JSON).delete();
 			}
 
+		});
+	}
+
+	@Override
+	public void deleteProperty(String property) throws OlogException {
+		final String propertyName = property;
+		wrappedSubmit(new Runnable() {
+
+			@Override
+			public void run() {
+				service.path("properties").path(propertyName)
+						.accept(MediaType.TEXT_XML)
+						.accept(MediaType.APPLICATION_JSON)
+						.delete(PropertyBuilder.property(propertyName).toXml());
+			}
 		});
 	}
 

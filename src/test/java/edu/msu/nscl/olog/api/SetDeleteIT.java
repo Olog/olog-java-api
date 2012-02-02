@@ -138,7 +138,6 @@ public class SetDeleteIT {
 			assertTrue(
 					"failed to set the testTag, tag logbook not eq to payload",
 					returnTag.equals(tag.build()));
-
 			assertTrue("failed to set the testTag",
 					client.listTags().contains(tag.build()));
 		} catch (Exception e) {
@@ -148,6 +147,25 @@ public class SetDeleteIT {
 			client.deleteLogbook(tag.build().getName());
 			assertFalse("failed to clean the testTag", client.listTags()
 					.contains(tag.build()));
+		}
+	}
+
+	/**
+	 * create(set) and delete a single property
+	 */
+	@Test
+	public void setPropertyTest() {
+		PropertyBuilder property = property("testProperty").attribute("testAttribute", "testAttributeValue");
+		try {
+			Property setProperty = client.set(property);
+			assertTrue("failed to set the testProperty, the return was null",
+					setProperty != null);
+		} catch (Exception e) {
+			// TODO: handle exception
+		} finally {
+			client.deleteProperty(property.build().getName());
+			assertFalse("failed to clean the testProperty", client
+					.listProperties().contains(property.build()));
 		}
 	}
 
@@ -285,7 +303,7 @@ public class SetDeleteIT {
 	/**
 	 * create a log with a property and delete it
 	 */
-	//@Test
+	// @Test
 	public void setLogWithProperty() {
 		PropertyBuilder testProp = property("test Property").attribute(
 				"attributeName", "attributeValue");
@@ -391,7 +409,7 @@ public class SetDeleteIT {
 	 * Test destructive set on a logbook, the logbook should be added to only
 	 * those logs specified and removed from all others
 	 */
-//	 @Test
+	// @Test
 	public void setLogbook2logTest() {
 		LogbookBuilder testLogBook = logbook("testLogBook").owner(logbookOwner);
 		Map<String, String> map = new Hashtable<String, String>();

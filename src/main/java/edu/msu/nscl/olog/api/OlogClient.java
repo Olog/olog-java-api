@@ -36,6 +36,13 @@ public interface OlogClient {
 	public Collection<Tag> listTags() throws OlogException;
 
 	/**
+	 * Get a list of all the Properties currently existing
+	 * 
+	 * @return
+	 * @throws OlogException
+	 */
+	public Collection<Property> listProperties() throws OlogException;
+	/**
 	 * Get a list of all the levels currently existing
 	 * 
 	 * @return string collection of levels
@@ -165,21 +172,21 @@ public interface OlogClient {
 	 */
 	public Logbook set(LogbookBuilder logbook, Collection<Long> logIds)
 			throws OlogException;
+	
+	/**
+	 * Create or replace property <tt>property</tt>
+	 * 
+	 * @param property
+	 * @return
+	 * @throws OlogException
+	 */
+	public Property set(PropertyBuilder property) throws OlogException;
 
 	/**
-	 * Set the logbook <tt>logbook</tt> to the logs identified by
-	 * <tt>logIds</tt> and remove it from all other logs
-	 * 
-	 * @param logIds
-	 * @param logbook
-	 * 
-	 *            public void set(LogbookBuilder logbook, Collection<Long>
-	 *            logIds);
-	 * 
-	 *            /** Update a single log <tt>log</tt>
+	 * Update a log entry <tt>log </tt>
 	 * 
 	 * @param log
-	 *            the log to be added
+	 * @return the updated log entry 
 	 * @throws OlogException
 	 */
 	public Log update(LogBuilder log) throws OlogException;
@@ -346,6 +353,14 @@ public interface OlogClient {
 	 */
 	public void deleteLogbook(String logbook) throws OlogException;
 
+	/**
+	 * Delete the property with name <tt>property</tt>
+	 * 
+	 * @param property
+	 * @throws OlogException
+	 */
+	public void deleteProperty(String property) throws OlogException;
+	
 	/**
 	 * Remove the log identified by <tt>log</tt>
 	 * 
