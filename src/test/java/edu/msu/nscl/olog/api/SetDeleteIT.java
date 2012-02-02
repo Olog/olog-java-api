@@ -155,17 +155,49 @@ public class SetDeleteIT {
 	 */
 	@Test
 	public void setPropertyTest() {
-		PropertyBuilder property = property("testProperty").attribute("testAttribute", "testAttributeValue");
+		PropertyBuilder property = property("testProperty");
 		try {
 			Property setProperty = client.set(property);
 			assertTrue("failed to set the testProperty, the return was null",
 					setProperty != null);
+			assertTrue(
+					"failed to set testProperty, setProperty not equal to sent property",
+					setProperty.equals(property.build()));
+			assertTrue("failed to set testProperty", client.listProperties()
+					.contains(property.build()));
 		} catch (Exception e) {
-			// TODO: handle exception
+			fail(e.getCause().toString());
 		} finally {
 			client.deleteProperty(property.build().getName());
+			Collection<Property> test = client.listProperties();
 			assertFalse("failed to clean the testProperty", client
 					.listProperties().contains(property.build()));
+		}
+	}
+
+	/**
+	 * Set Property with attributes
+	 */
+	@Test
+	public void setTagwithAttributeTest() {
+		PropertyBuilder property = property("testPropertyWithAttibutes")
+				.attribute("testAttribute", "testAttributeVal");
+		try {
+			Property setProperty = client.set(property);
+			assertTrue("failed to set the testProperty, the return was null",
+					setProperty != null);
+			Property searchedProperty = client.getProperty(property.build()
+					.getName());
+			assertTrue(
+					"failed to set the testPropertyWithAttibutes",
+					searchedProperty.getName().equalsIgnoreCase(
+							property.build().getName())
+							&& searchedProperty.getAttributes().containsAll(
+									property.build().getAttributes()));
+		} catch (Exception e) {
+			fail(e.getCause().toString());
+		} finally {
+			client.deleteProperty(property.build().getName());
 		}
 	}
 
@@ -265,7 +297,10 @@ public class SetDeleteIT {
 				fwrite.close();
 			}
 			client.add(f, testLog.getId());
-			assertTrue(client.getAttachments(testLog.getId()).size() == 1);
+			Collection<String> attachments = client.getAttachments(testLog
+					.getId());
+			assertTrue("failed to add an attachment, expected 1 found "
+					+ attachments.size(), attachments.size() == 1);
 		} catch (Exception e) {
 			fail(e.getMessage());
 		} finally {
@@ -291,7 +326,10 @@ public class SetDeleteIT {
 					.appendDescription("test log").level("Info")
 					.appendToLogbook(defaultLogBook));
 			client.add(f, testLog.getId());
-			assertTrue(client.getAttachments(testLog.getId()).size() == 1);
+			Collection<String> attachments = client.getAttachments(testLog
+					.getId());
+			assertTrue("failed to add attachment images, expected 1 found "
+					+ attachments.size(), attachments.size() == 1);
 		} finally {
 			if (testLog != null) {
 				client.delete("the_homercar.jpg", testLog.getId());
@@ -303,7 +341,7 @@ public class SetDeleteIT {
 	/**
 	 * create a log with a property and delete it
 	 */
-	// @Test
+	@Test
 	public void setLogWithProperty() {
 		PropertyBuilder testProp = property("test Property").attribute(
 				"attributeName", "attributeValue");
@@ -311,8 +349,10 @@ public class SetDeleteIT {
 				.appendDescription("test Log").level("info")
 				.appendToLogbook(defaultLogBook).appendTag(defaultTag)
 				.property(testProp);
+		Property setProperty = null;
 		Log setLog = null;
 		try {
+			setProperty = client.set(testProp);
 			setLog = client.set(log);
 			assertTrue("failed to set test log", setLog != null);
 			assertTrue(
@@ -323,7 +363,10 @@ public class SetDeleteIT {
 		} catch (Exception e) {
 			fail(e.getMessage());
 		} finally {
-			client.delete(setLog.getId());
+			if (setProperty != null)
+				client.deleteProperty(setProperty.getName());
+			if (setLog != null)
+				client.delete(setLog.getId());
 		}
 	}
 
