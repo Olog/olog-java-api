@@ -429,6 +429,21 @@ public class OlogClientImpl implements OlogClient {
 	}
 
 	@Override
+	public Property getProperty(String property) throws OlogException {
+		final String propertyName = property;
+		return wrappedSubmit(new Callable<Property>() {
+
+			@Override
+			public Property call() throws Exception {
+				return new Property(service.path("properties").path(propertyName)
+						.accept(MediaType.APPLICATION_XML)
+						.accept(MediaType.APPLICATION_JSON)
+						.get(XmlProperty.class));
+			}
+		});
+	}
+
+	@Override
 	public Log set(LogBuilder log) throws OlogException {
 		Collection<Log> result = wrappedSubmit(new SetLogs(log));
 		if (result.size() == 1) {

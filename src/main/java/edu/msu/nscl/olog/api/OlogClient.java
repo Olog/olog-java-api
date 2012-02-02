@@ -80,6 +80,14 @@ public interface OlogClient {
 			DavException;
 
 	/**
+	 * return the complete property <tt>property</tt>
+	 * 
+	 * @param property
+	 * @return 
+	 * @throws OlogException
+	 */
+	public Property getProperty(String property) throws OlogException;
+	/**
 	 * Set a single log <tt>log</tt>, if the log already exists it is replaced.
 	 * Destructive operation
 	 * 
