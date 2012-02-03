@@ -435,8 +435,8 @@ public class OlogClientImpl implements OlogClient {
 
 			@Override
 			public Property call() throws Exception {
-				return new Property(service.path("properties").path(propertyName)
-						.accept(MediaType.APPLICATION_XML)
+				return new Property(service.path("properties")
+						.path(propertyName).accept(MediaType.APPLICATION_XML)
 						.accept(MediaType.APPLICATION_JSON)
 						.get(XmlProperty.class));
 			}
@@ -643,6 +643,22 @@ public class OlogClientImpl implements OlogClient {
 			throws OlogException {
 		// TODO Auto-generated method stub
 		return null;
+	}
+
+	@Override
+	public Property update(PropertyBuilder property) throws OlogException {
+		final XmlProperty xmlProperty = property.toXml();
+		return wrappedSubmit(new Callable<Property>() {
+			@Override
+			public Property call() throws Exception {
+				ClientResponse clientResponse = service.path("properties")
+						.path(xmlProperty.getName())
+						.accept(MediaType.APPLICATION_XML)
+						.accept(MediaType.APPLICATION_JSON)
+						.post(ClientResponse.class, xmlProperty);
+				return new Property(clientResponse.getEntity(XmlProperty.class));
+			}
+		});
 	}
 
 	@Override

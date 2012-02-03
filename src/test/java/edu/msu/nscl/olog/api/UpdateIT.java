@@ -271,6 +271,37 @@ public class UpdateIT {
 	}
 
 	/**
+	 * Update an existing property with a new attribute
+	 */
+	@Test
+	public void updateProperty(){
+		PropertyBuilder property = PropertyBuilder.property("testProperty").attribute("orignalAttribute", "");
+		try {
+			client.set(property);
+			Property searchedProperty = client.getProperty(property.build()
+					.getName());
+			assertTrue(
+					"failed to set the testPropertyWithAttibutes",
+					searchedProperty.getName().equalsIgnoreCase(
+							property.build().getName())
+							&& searchedProperty.getAttributes().containsAll(
+									property.build().getAttributes()));
+			property.attribute("newAtrribute", "");
+			client.update(property);
+			searchedProperty = client.getProperty(property.build()
+					.getName());
+			assertTrue(
+					"failed to set the testPropertyWithAttibutes",
+					searchedProperty.getName().equalsIgnoreCase(
+							property.build().getName())
+							&& searchedProperty.getAttributes().containsAll(
+									property.build().getAttributes()));
+			
+		} catch (Exception e) {
+			// TODO: handle exception
+		}
+	}
+	/**
 	 * This seems like an incorrect equality test but don't know how to test if
 	 * the log I am sending has indeed been set/added since I don't have the id
 	 * in the builder

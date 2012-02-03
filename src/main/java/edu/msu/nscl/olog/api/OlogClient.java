@@ -87,6 +87,7 @@ public interface OlogClient {
 	 * @throws OlogException
 	 */
 	public Property getProperty(String property) throws OlogException;
+	
 	/**
 	 * Set a single log <tt>log</tt>, if the log already exists it is replaced.
 	 * Destructive operation
@@ -209,6 +210,14 @@ public interface OlogClient {
 	public Collection<Log> update(Collection<LogBuilder> logs)
 			throws OlogException;
 
+	/**
+	 * Update an existing property, 
+	 * 
+	 * @param property
+	 * @return
+	 */
+	public Property update(PropertyBuilder property);
+	
 	/**
 	 * Update Tag <tt>tag </tt> by adding it to Log with name <tt>logName</tt>
 	 * 
