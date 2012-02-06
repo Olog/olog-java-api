@@ -9,7 +9,9 @@ glob:ologAPI/target/*
 \.conflict\~$
 glob:target/*
 
-syntax: glob
+
+syntax: regexp
+^\.settings$syntax: glob
 testfile.txt
 .settings/*
 .project

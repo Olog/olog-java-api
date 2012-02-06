@@ -14,6 +14,7 @@ import edu.msu.nscl.olog.api.OlogClientImpl.OlogClientBuilder;
 import static edu.msu.nscl.olog.api.LogBuilder.*;
 import static edu.msu.nscl.olog.api.TagBuilder.*;
 import static edu.msu.nscl.olog.api.LogbookBuilder.*;
+import static edu.msu.nscl.olog.api.PropertyBuilder.*;
 
 /**
  * This case consists of tests for operations which use update.
@@ -274,8 +275,9 @@ public class UpdateIT {
 	 * Update an existing property with a new attribute
 	 */
 	@Test
-	public void updateProperty(){
-		PropertyBuilder property = PropertyBuilder.property("testProperty").attribute("orignalAttribute", "");
+	public void updateProperty() {
+		PropertyBuilder property = property("testProperty").attribute(
+				"orignalAttribute", "");
 		try {
 			client.set(property);
 			Property searchedProperty = client.getProperty(property.build()
@@ -288,19 +290,75 @@ public class UpdateIT {
 									property.build().getAttributes()));
 			property.attribute("newAtrribute", "");
 			client.update(property);
-			searchedProperty = client.getProperty(property.build()
-					.getName());
+			searchedProperty = client.getProperty(property.build().getName());
 			assertTrue(
 					"failed to set the testPropertyWithAttibutes",
 					searchedProperty.getName().equalsIgnoreCase(
 							property.build().getName())
 							&& searchedProperty.getAttributes().containsAll(
 									property.build().getAttributes()));
-			
+
 		} catch (Exception e) {
 			// TODO: handle exception
+		} finally {
+			client.deleteProperty(property.build().getName());
 		}
 	}
+
+	@Test
+	public void updateProperty2log() {
+		PropertyBuilder testProperty = property("testProperty1").attribute("testAttribute", "");
+		Log testLog1 = null;
+		Log testLog2 = null;
+		try {
+			// create test logs
+			testLog1 = client.set(log()
+					.description("testLog1_updateProperty2Log")
+					.appendDescription("test log")
+					.appendToLogbook(defaultLogbook).level("Info"));
+			testLog2 = client.set(log()
+					.description("testLog2_updateProperty2Log")
+					.appendDescription("test log")
+					.appendToLogbook(defaultLogbook).level("Info"));
+			// create a Property with no logs
+			client.set(testProperty);
+			assertTrue("failed to create an empty tag testTag1", client
+					.findLogsByProperty(testProperty.build().getName()).size() == 0);
+			// add testLog1 to testProperty
+			testProperty.attribute("testAttribute", "testAttributeValue");
+			client.update(testProperty, testLog1.getId());
+			// check if the log was updated with the testProperty
+			// TODO add check
+			assertTrue(
+					"failed to update testLog1 with testProperty",
+					checkEqualityWithoutID(
+							client.findLogsByProperty(testProperty.build().getName()),
+							testLog1));
+			// add testLog2 to testProperty
+			client.update(testProperty, testLog2.getId());
+			// check if the testLog2 was updated with the testProperty
+			assertTrue(
+					"failed to update testLog2 with testProperty",
+					checkEqualityWithoutID(
+							client.findLogsByProperty(testProperty.build().getName()),
+							testLog2));
+			// check testLog1 was not affected by the update
+			assertTrue(
+					"failed to update testLog1 with testProperty",
+					checkEqualityWithoutID(
+							client.findLogsByProperty(testProperty.build().getName()),
+							testLog1));
+		} catch (Exception ex) {
+			fail(ex.getMessage());
+		} finally {
+			client.deleteProperty(testProperty.build().getName());
+			if (testLog1 != null)
+				client.delete(testLog1.getId());
+			if (testLog2 != null)
+				client.delete(testLog2.getId());
+		}
+	}
+
 	/**
 	 * This seems like an incorrect equality test but don't know how to test if
 	 * the log I am sending has indeed been set/added since I don't have the id

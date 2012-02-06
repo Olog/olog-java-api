@@ -9,6 +9,7 @@ import java.io.InputStream;
 import java.net.URI;
 import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
+import java.security.Provider.Service;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collection;
@@ -763,10 +764,21 @@ public class OlogClientImpl implements OlogClient {
 	}
 
 	@Override
-	public Property update(PropertyBuilder property, Long logId)
+	public Log update(PropertyBuilder property, Long logId)
 			throws OlogException {
-		return null;
-		// TODO Auto-generated method stub
+		final XmlProperty xmlProperty = property.toXml();
+		final String updateLogId = logId.toString();
+		return wrappedSubmit(new Callable<Log>() {
+			@Override
+			public Log call() throws Exception {
+				ClientResponse clientResponse = service.path("properties")
+						.path(xmlProperty.getName()).path(updateLogId)
+						.accept(MediaType.APPLICATION_XML)
+						.accept(MediaType.APPLICATION_JSON)
+						.put(ClientResponse.class, xmlProperty);
+				return new Log(clientResponse.getEntity(XmlLog.class));
+			}
+		});
 
 	}
 
@@ -868,6 +880,14 @@ public class OlogClientImpl implements OlogClient {
 	public Collection<Log> findLogsByLogbook(String logbook)
 			throws OlogException {
 		return wrappedSubmit(new FindLogs("logbook", logbook));
+	}
+
+	@Override
+	public Collection<Log> findLogsByProperty(String property,
+			String... propertyValue) throws OlogException {
+		MultivaluedMap<String, String> mMap = new MultivaluedMapImpl();
+		mMap.putSingle(property, "*");
+		return wrappedSubmit(new FindLogs(mMap));
 	}
 
 	@Override

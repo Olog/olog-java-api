@@ -42,6 +42,7 @@ public interface OlogClient {
 	 * @throws OlogException
 	 */
 	public Collection<Property> listProperties() throws OlogException;
+
 	/**
 	 * Get a list of all the levels currently existing
 	 * 
@@ -83,17 +84,18 @@ public interface OlogClient {
 	 * return the complete property <tt>property</tt>
 	 * 
 	 * @param property
-	 * @return 
+	 * @return
 	 * @throws OlogException
 	 */
 	public Property getProperty(String property) throws OlogException;
-	
+
 	/**
 	 * Set a single log <tt>log</tt>, if the log already exists it is replaced.
 	 * Destructive operation
 	 * 
-	 * TODO: (shroffk) should there be anything returned?
-	 * XXX: creating logs with same subject allowed?
+	 * TODO: (shroffk) should there be anything returned? XXX: creating logs
+	 * with same subject allowed?
+	 * 
 	 * @param log
 	 *            the log to be added
 	 * @throws OlogException
@@ -103,7 +105,8 @@ public interface OlogClient {
 	/**
 	 * Set a set of logs Destructive operation.
 	 * 
-	 * TODO: (shroffk) should anything be returned? and should be returned from the service?
+	 * TODO: (shroffk) should anything be returned? and should be returned from
+	 * the service?
 	 * 
 	 * @param logs
 	 *            collection of logs to be added
@@ -181,7 +184,7 @@ public interface OlogClient {
 	 */
 	public Logbook set(LogbookBuilder logbook, Collection<Long> logIds)
 			throws OlogException;
-	
+
 	/**
 	 * Create or replace property <tt>property</tt>
 	 * 
@@ -195,7 +198,7 @@ public interface OlogClient {
 	 * Update a log entry <tt>log </tt>
 	 * 
 	 * @param log
-	 * @return the updated log entry 
+	 * @return the updated log entry
 	 * @throws OlogException
 	 */
 	public Log update(LogBuilder log) throws OlogException;
@@ -211,13 +214,13 @@ public interface OlogClient {
 			throws OlogException;
 
 	/**
-	 * Update an existing property, 
+	 * Update an existing property,
 	 * 
 	 * @param property
 	 * @return
 	 */
 	public Property update(PropertyBuilder property);
-	
+
 	/**
 	 * Update Tag <tt>tag </tt> by adding it to Log with name <tt>logName</tt>
 	 * 
@@ -251,7 +254,8 @@ public interface OlogClient {
 	 *            log id
 	 * @throws OlogException
 	 */
-	public Logbook update(LogbookBuilder logbook, Long logId) throws OlogException;
+	public Logbook update(LogbookBuilder logbook, Long logId)
+			throws OlogException;
 
 	/**
 	 * @param logIds
@@ -271,7 +275,7 @@ public interface OlogClient {
 	 *            log id the property to be added
 	 * @throws OlogException
 	 */
-	public Property update(PropertyBuilder property, Long logId)
+	public Log update(PropertyBuilder property, Long logId)
 			throws OlogException;
 
 	/**
@@ -301,7 +305,7 @@ public interface OlogClient {
 	 * @throws OlogException
 	 */
 	public Log findLogById(Long logId) throws OlogException;
-	
+
 	/**
 	 * 
 	 * @param pattern
@@ -332,6 +336,19 @@ public interface OlogClient {
 	 */
 	public Collection<Log> findLogsByLogbook(String logbook)
 			throws OlogException;
+
+	/**
+	 * This function is a subset of queryLogs should it be removed??
+	 * <p>
+	 * search for logs with property <tt>property</tt> and optionally value
+	 * matching pattern<tt>propertyValue</tt>
+	 * 
+	 * @param property
+	 * @return
+	 * @throws OlogException
+	 */
+	public Collection<Log> findLogsByProperty(String property,
+			String... propertyValue) throws OlogException;
 
 	/**
 	 * Query for logs based on the criteria specified in the map
@@ -377,7 +394,7 @@ public interface OlogClient {
 	 * @throws OlogException
 	 */
 	public void deleteProperty(String property) throws OlogException;
-	
+
 	/**
 	 * Remove the log identified by <tt>log</tt>
 	 * 
