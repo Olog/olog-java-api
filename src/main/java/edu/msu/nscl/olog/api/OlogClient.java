@@ -347,8 +347,8 @@ public interface OlogClient {
 	 * @return
 	 * @throws OlogException
 	 */
-	public Collection<Log> findLogsByProperty(String property,
-			String... propertyValue) throws OlogException;
+	public Collection<Log> findLogsByProperty(String propertyName,
+			String attributeName, String attributeValue) throws OlogException;
 
 	/**
 	 * Query for logs based on the criteria specified in the map

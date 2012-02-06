@@ -3,6 +3,7 @@ package edu.msu.nscl.olog.api;
 import static edu.msu.nscl.olog.api.LogBuilder.log;
 import static edu.msu.nscl.olog.api.LogbookBuilder.logbook;
 import static edu.msu.nscl.olog.api.TagBuilder.tag;
+import static edu.msu.nscl.olog.api.PropertyBuilder.*;
 import static org.junit.Assert.assertTrue;
 
 import java.util.Collection;
@@ -61,6 +62,9 @@ public class QueryIT {
 	// Logbooks
 	static LogbookBuilder book = logbook("book");
 	static LogbookBuilder book2 = logbook("book2");
+	// Property
+	static PropertyBuilder property1 = property("testProperty").attribute(
+			"testAttribute", "");
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
@@ -75,13 +79,16 @@ public class QueryIT {
 		client.set(tagB);
 		client.set(tagC);
 		client.set(tagStar);
+		client.set(property1);
 		pvk_01 = client.set(log()
 				.description("pvk:01<first> " + "first details").level("Info")
-				.appendToLogbook(book).appendToLogbook(book2).appendTag(tagA));
+				.appendToLogbook(book).appendToLogbook(book2).appendTag(tagA)
+				.appendProperty(property1.attribute("testAttribute", "log01")));
 		pvk_02 = client.set(log()
 				.description("pvk:02<second> " + "second details")
 				.level("Info").appendToLogbook(book).appendTag(tagA)
-				.appendTag(tagB));
+				.appendTag(tagB)
+				.appendProperty(property1.attribute("testAttribute", "log02")));
 		pvk_03 = client.set(log()
 				.description("pvk:03<second> " + "some details").level("Info")
 				.appendToLogbook(book).appendTag(tagB).appendTag(tagC));
@@ -103,6 +110,7 @@ public class QueryIT {
 		client.deleteTag(tagB.toXml().getName());
 		client.deleteTag(tagC.toXml().getName());
 		client.deleteTag(tagStar.toXml().getName());
+		client.deleteProperty(property1.build().getName());
 
 		assertTrue(client.listLogs().size() == initialLogCount);
 	}
@@ -341,5 +349,21 @@ public class QueryIT {
 		// find by logbook
 		assertTrue("Failed to query using the findbylogbook method", client
 				.findLogsByLogbook(book2.build().getName()).size() == 1);
+		
+	}
+	
+	/**
+	 * Test searching for logs based on properties
+	 */
+	@Test
+	public void queryPropertyTest(){
+		// .../logs?propertyName[attributeName]=attributeValuePattern
+		// return all logs with propertyName.attributeName=attributeValuePattern
+		//
+		// .../logs?property1[attr1]=attr1Value&property1[attr2]=attr2Value
+		// return all logs with property1 having attr1=attr1Value AND
+		// attr2=attr2Value
+		Collection<Log> queryResult = client.findLogsByProperty("testProperty", "testAttribute", "*");
+		assertTrue("failed to search based on property/attributes", queryResult.size() == 2);
 	}
 }

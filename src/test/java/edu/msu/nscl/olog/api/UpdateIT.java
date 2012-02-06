@@ -307,7 +307,8 @@ public class UpdateIT {
 
 	@Test
 	public void updateProperty2log() {
-		PropertyBuilder testProperty = property("testProperty1").attribute("testAttribute", "");
+		PropertyBuilder testProperty = property("testProperty1").attribute(
+				"testAttribute", "");
 		Log testLog1 = null;
 		Log testLog2 = null;
 		try {
@@ -322,8 +323,10 @@ public class UpdateIT {
 					.appendToLogbook(defaultLogbook).level("Info"));
 			// create a Property with no logs
 			client.set(testProperty);
-			assertTrue("failed to create an empty tag testTag1", client
-					.findLogsByProperty(testProperty.build().getName()).size() == 0);
+			assertTrue(
+					"failed to create an empty tag testTag1",
+					client.findLogsByProperty(testProperty.build().getName(),
+							"testAttribute", "*").size() == 0);
 			// add testLog1 to testProperty
 			testProperty.attribute("testAttribute", "testAttributeValue");
 			client.update(testProperty, testLog1.getId());
@@ -331,23 +334,23 @@ public class UpdateIT {
 			// TODO add check
 			assertTrue(
 					"failed to update testLog1 with testProperty",
-					checkEqualityWithoutID(
-							client.findLogsByProperty(testProperty.build().getName()),
-							testLog1));
+					checkEqualityWithoutID(client.findLogsByProperty(
+							testProperty.build().getName(), "testAttribute",
+							"*"), testLog1));
 			// add testLog2 to testProperty
 			client.update(testProperty, testLog2.getId());
 			// check if the testLog2 was updated with the testProperty
 			assertTrue(
 					"failed to update testLog2 with testProperty",
-					checkEqualityWithoutID(
-							client.findLogsByProperty(testProperty.build().getName()),
-							testLog2));
+					checkEqualityWithoutID(client.findLogsByProperty(
+							testProperty.build().getName(), "testAttribute",
+							"*"), testLog2));
 			// check testLog1 was not affected by the update
 			assertTrue(
 					"failed to update testLog1 with testProperty",
-					checkEqualityWithoutID(
-							client.findLogsByProperty(testProperty.build().getName()),
-							testLog1));
+					checkEqualityWithoutID(client.findLogsByProperty(
+							testProperty.build().getName(), "testAttribute",
+							"*"), testLog1));
 		} catch (Exception ex) {
 			fail(ex.getMessage());
 		} finally {
