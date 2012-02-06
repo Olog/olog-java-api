@@ -64,7 +64,7 @@ public class QueryIT {
 	static LogbookBuilder book2 = logbook("book2");
 	// Property
 	static PropertyBuilder property1 = property("testProperty").attribute(
-			"testAttribute", "");
+			"testAttribute");
 
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
@@ -105,11 +105,11 @@ public class QueryIT {
 		client.delete(distinctName.getId());
 		// clean up all the tags and logbooks
 		client.deleteLogbook(book.build().getName());
-		client.deleteLogbook(book2.toXml().getName());
-		client.deleteTag(tagA.toXml().getName());
-		client.deleteTag(tagB.toXml().getName());
-		client.deleteTag(tagC.toXml().getName());
-		client.deleteTag(tagStar.toXml().getName());
+		client.deleteLogbook(book2.build().getName());
+		client.deleteTag(tagA.build().getName());
+		client.deleteTag(tagB.build().getName());
+		client.deleteTag(tagC.build().getName());
+		client.deleteTag(tagStar.build().getName());
 		client.deleteProperty(property1.build().getName());
 
 		assertTrue(client.listLogs().size() == initialLogCount);
@@ -365,5 +365,8 @@ public class QueryIT {
 		// attr2=attr2Value
 		Collection<Log> queryResult = client.findLogsByProperty("testProperty", "testAttribute", "*");
 		assertTrue("failed to search based on property/attributes", queryResult.size() == 2);
+		
+		queryResult = client.findLogsByProperty("testProperty", "testAttribute", "log01");
+		assertTrue("failed to search based on property/attributes", queryResult.size() == 1);
 	}
 }

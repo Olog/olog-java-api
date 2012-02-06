@@ -277,7 +277,7 @@ public class UpdateIT {
 	@Test
 	public void updateProperty() {
 		PropertyBuilder property = property("testProperty").attribute(
-				"orignalAttribute", "");
+				"orignalAttribute");
 		try {
 			client.set(property);
 			Property searchedProperty = client.getProperty(property.build()
@@ -308,7 +308,7 @@ public class UpdateIT {
 	@Test
 	public void updateProperty2log() {
 		PropertyBuilder testProperty = property("testProperty1").attribute(
-				"testAttribute", "");
+				"testAttribute");
 		Log testLog1 = null;
 		Log testLog2 = null;
 		try {
