@@ -886,7 +886,7 @@ public class OlogClientImpl implements OlogClient {
 	public Collection<Log> findLogsByProperty(String propertyName,
 			String attributeName, String attributeValue) throws OlogException {
 		MultivaluedMap<String, String> mMap = new MultivaluedMapImpl();
-		mMap.putSingle(propertyName+"["+attributeName+"]", attributeValue);
+		mMap.putSingle(propertyName+"."+attributeName, attributeValue);
 		return wrappedSubmit(new FindLogs(mMap));
 	}
 
