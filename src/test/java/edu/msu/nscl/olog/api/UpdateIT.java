@@ -332,19 +332,17 @@ public class UpdateIT {
 			client.update(testProperty, testLog1.getId());
 			// check if the log was updated with the testProperty
 			// TODO add check
-			assertTrue(
-					"failed to update testLog1 with testProperty",
-					checkEqualityWithoutID(client.findLogsByProperty(
-							testProperty.build().getName(), "testAttribute",
-							"*"), testLog1));
+			Collection<Log> queryResult = client.findLogsByProperty(
+					testProperty.build().getName(), "testAttribute", "*");
+			assertTrue("failed to update testLog1 with testProperty",
+					checkEqualityWithoutID(queryResult, testLog1));
 			// add testLog2 to testProperty
 			client.update(testProperty, testLog2.getId());
 			// check if the testLog2 was updated with the testProperty
-			assertTrue(
-					"failed to update testLog2 with testProperty",
-					checkEqualityWithoutID(client.findLogsByProperty(
-							testProperty.build().getName(), "testAttribute",
-							"*"), testLog2));
+			queryResult = client.findLogsByProperty(testProperty.build()
+					.getName(), "testAttribute", "*");
+			assertTrue("failed to update testLog2 with testProperty",
+					checkEqualityWithoutID(queryResult, testLog2));
 			// check testLog1 was not affected by the update
 			assertTrue(
 					"failed to update testLog1 with testProperty",
