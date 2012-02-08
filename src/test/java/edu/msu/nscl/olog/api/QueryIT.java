@@ -45,8 +45,6 @@ import edu.msu.nscl.olog.api.OlogClientImpl.OlogClientBuilder;
 
 public class QueryIT {
 
-	private static int initialLogCount;
-
 	private static OlogClient client;
 	// Logs
 	static private Log pvk_01;
@@ -66,12 +64,20 @@ public class QueryIT {
 	static PropertyBuilder property1 = property("testProperty").attribute(
 			"testAttribute");
 
+	private static int initialLogCount;
+	private static int initialTagCount;
+	private static int initialLogbookCount;
+	private static int initialPropertyCount;
+
 	@BeforeClass
 	public static void setUpBeforeClass() throws Exception {
 		client = OlogClientBuilder.serviceURL().withHTTPAuthentication(true)
 				.create();
 
 		initialLogCount = client.listLogs().size();
+		initialTagCount = client.listTags().size();
+		initialLogbookCount = client.listLogbooks().size();
+		initialPropertyCount = client.listProperties().size();
 		// Add the tags and logbooks.
 		client.set(book.owner("me"));
 		client.set(book2.owner("me"));
@@ -121,6 +127,28 @@ public class QueryIT {
 
 	@After
 	public void tearDown() throws Exception {
+	}
+
+	/**
+	 * Test the list operations TODO test list operations
+	 */
+	@Test
+	public void listTest() {
+		assertTrue("Failed to list all logbooks",
+				client.listLogbooks().size() == (initialLogbookCount + 2));
+		assertTrue("Failed to list all tags",
+				client.listTags().size() == (initialTagCount + 4));
+		assertTrue("Failed to list all properties", client.listProperties()
+				.size() == (initialPropertyCount + 1));
+	}
+
+	@Test
+	public void listAttributes() {
+		assertTrue(
+				"failed to list the attributes of property "
+						+ property1.build().getName(),
+				client.listAttributes(property1.build().getName()).containsAll(
+						property1.build().getAttributes()));
 	}
 
 	/**
@@ -349,24 +377,28 @@ public class QueryIT {
 		// find by logbook
 		assertTrue("Failed to query using the findbylogbook method", client
 				.findLogsByLogbook(book2.build().getName()).size() == 1);
-		
+
 	}
-	
+
 	/**
 	 * Test searching for logs based on properties
 	 */
 	@Test
-	public void queryPropertyTest(){
+	public void queryPropertyTest() {
 		// .../logs?propertyName[attributeName]=attributeValuePattern
 		// return all logs with propertyName.attributeName=attributeValuePattern
 		//
 		// .../logs?property1[attr1]=attr1Value&property1[attr2]=attr2Value
 		// return all logs with property1 having attr1=attr1Value AND
 		// attr2=attr2Value
-		Collection<Log> queryResult = client.findLogsByProperty("testProperty", "testAttribute", "*");
-		assertTrue("failed to search based on property/attributes", queryResult.size() == 2);
-		
-		queryResult = client.findLogsByProperty("testProperty", "testAttribute", "log01");
-		assertTrue("failed to search based on property/attributes", queryResult.size() == 1);
+		Collection<Log> queryResult = client.findLogsByProperty("testProperty",
+				"testAttribute", "*");
+		assertTrue("failed to search based on property/attributes",
+				queryResult.size() == 2);
+
+		queryResult = client.findLogsByProperty("testProperty",
+				"testAttribute", "log01");
+		assertTrue("failed to search based on property/attributes",
+				queryResult.size() == 1);
 	}
 }

@@ -373,6 +373,13 @@ public class OlogClientImpl implements OlogClient {
 			}
 		});
 	}
+	
+
+	@Override
+	public Collection<String> listAttributes(String propertyName)
+			throws OlogException {
+		return getProperty(propertyName).getAttributes();
+	}
 
 	@SuppressWarnings("deprecation")
 	@Override
@@ -532,13 +539,13 @@ public class OlogClientImpl implements OlogClient {
 		@Override
 		public Tag call() {
 			XmlTag xmlTag = tag.toXml();
-			if (logIds != null && logIds.size() > 0) {
-				XmlLogs xmlLogs = new XmlLogs();
-				for (Long logId : logIds) {
-					xmlLogs.addXmlLog(new XmlLog(logId));
-				}
-				xmlTag.setXmlLogs(xmlLogs);
-			}
+//			if (logIds != null && logIds.size() > 0) {
+//				XmlLogs xmlLogs = new XmlLogs();
+//				for (Long logId : logIds) {
+//					xmlLogs.addXmlLog(new XmlLog(logId));
+//				}
+//				xmlTag.setXmlLogs(xmlLogs);
+//			}
 			ClientResponse response = service.path("tags")
 					.path(tag.toXml().getName())
 					.accept(MediaType.APPLICATION_XML)
@@ -1102,5 +1109,13 @@ public class OlogClientImpl implements OlogClient {
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
+	}
+
+
+	@Override
+	public Collection<Log> findLogsByProperty(String propertyName)
+			throws OlogException {
+		// TODO Auto-generated method stub
+		return null;
 	}
 }
