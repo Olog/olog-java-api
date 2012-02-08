@@ -51,6 +51,19 @@ public class ErrorIT {
 	}
 
 	@Test(expected = OlogException.class)
+	public void setLogWithNoLogbook() {
+		LogBuilder log = log().description("log with no logbook").level("Info");
+		client.set(log);
+	}
+
+	@Test(expected = OlogException.class)
+	public void setLogWithNoLevel() {
+		LogBuilder log = log().description("log with no level")
+				.appendToLogbook(validLogbook);
+		client.set(log);
+	}
+
+	@Test(expected = OlogException.class)
 	public void setLogWithInvalidLogbook() {
 		LogBuilder log = log().description("log with invalid logbook")
 				.level("Info").appendToLogbook(inValidLogbook);
@@ -60,14 +73,16 @@ public class ErrorIT {
 	@Test(expected = OlogException.class)
 	public void setLogWithInvalidTag() {
 		LogBuilder log = log().description("log with invalid tag")
-				.level("Info").appendTag(inValidTag);
+				.level("Info").appendToLogbook(validLogbook)
+				.appendTag(inValidTag);
 		client.set(log);
 	}
 
 	@Test(expected = OlogException.class)
 	public void setLogWithInvalidProperty() {
 		LogBuilder log = log().description("log with invalid property")
-				.level("Info").appendProperty(inValidProperty);
+				.level("Info").appendToLogbook(validLogbook)
+				.appendProperty(inValidProperty);
 		client.set(log);
 	}
 
@@ -76,6 +91,7 @@ public class ErrorIT {
 		LogBuilder log = log()
 				.description("log with invalid attribute")
 				.level("Info")
+				.appendToLogbook(validLogbook)
 				.appendProperty(validProperty.attribute("invalidAttribute", ""));
 		client.set(log);
 	}
