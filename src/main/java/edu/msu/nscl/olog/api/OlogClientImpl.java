@@ -888,6 +888,12 @@ public class OlogClientImpl implements OlogClient {
 			throws OlogException {
 		return wrappedSubmit(new FindLogs("logbook", logbook));
 	}
+	
+	@Override
+	public Collection<Log> findLogsByProperty(String propertyName)
+			throws OlogException {
+		return wrappedSubmit(new FindLogs("property", propertyName));
+	}
 
 	@Override
 	public Collection<Log> findLogsByProperty(String propertyName,
@@ -895,7 +901,7 @@ public class OlogClientImpl implements OlogClient {
 		MultivaluedMap<String, String> mMap = new MultivaluedMapImpl();
 		mMap.putSingle(propertyName+"."+attributeName, attributeValue);
 		return wrappedSubmit(new FindLogs(mMap));
-	}
+	}	
 
 	@Override
 	public Collection<Log> findLogs(Map<String, String> map)
@@ -1109,13 +1115,5 @@ public class OlogClientImpl implements OlogClient {
 		} catch (Exception e) {
 			throw new RuntimeException(e);
 		}
-	}
-
-
-	@Override
-	public Collection<Log> findLogsByProperty(String propertyName)
-			throws OlogException {
-		// TODO Auto-generated method stub
-		return null;
 	}
 }

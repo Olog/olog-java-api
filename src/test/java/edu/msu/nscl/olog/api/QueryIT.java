@@ -384,7 +384,7 @@ public class QueryIT {
 	 * Test searching for logs based on properties
 	 */
 	@Test
-	public void queryPropertyTest() {
+	public void queryPropertyAttributeTest() {
 		// .../logs?propertyName[attributeName]=attributeValuePattern
 		// return all logs with propertyName.attributeName=attributeValuePattern
 		//
@@ -400,5 +400,19 @@ public class QueryIT {
 				"testAttribute", "log01");
 		assertTrue("failed to search based on property/attributes",
 				queryResult.size() == 1);
+	}
+
+	/**
+	 * Test searching for logs based only of weather a particular property
+	 * exists.
+	 */
+	@Test
+	public void queryPropertyTest() {
+		Collection<Log> queryResult = client.findLogsByProperty("testProperty");
+		assertTrue("Failed to query based on property name alone.",
+				queryResult.size() == 2);
+		assertTrue("Failed to query based on property name alone.",
+				queryResult.contains(pvk_01) && queryResult.contains(pvk_02));
+
 	}
 }
