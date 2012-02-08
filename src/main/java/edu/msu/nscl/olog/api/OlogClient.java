@@ -42,6 +42,16 @@ public interface OlogClient {
 	 * @throws OlogException
 	 */
 	public Collection<Property> listProperties() throws OlogException;
+	
+	/**
+	 * List all the active attributes associated with the property <tt>propertyName</tt>
+	 * property must exist, name != null
+	 * 
+	 * @param propertyName
+	 * @return
+	 * @throws OlogException
+	 */
+	public Collection<String> listAttributes(String propertyName) throws OlogException;
 
 	/**
 	 * Get a list of all the levels currently existing
@@ -93,6 +103,8 @@ public interface OlogClient {
 	 * Set a single log <tt>log</tt>, if the log already exists it is replaced.
 	 * Destructive operation
 	 * 
+	 * TODO: check validity of log entry represented by builder
+	 * 
 	 * TODO: (shroffk) should there be anything returned? XXX: creating logs
 	 * with same subject allowed?
 	 * 
@@ -112,24 +124,19 @@ public interface OlogClient {
 	 *            collection of logs to be added
 	 * @throws OlogException
 	 */
+	@Deprecated
 	public Collection<Log> set(Collection<LogBuilder> logs)
 			throws OlogException;
 
 	/**
 	 * Set a Tag <tt>tag</tt> with no associated logs to the database.
 	 * 
+	 * TODO: validity check, 
+	 * 
 	 * @param tag
 	 * @throws OlogException
 	 */
 	public Tag set(TagBuilder tag) throws OlogException;
-
-	// /**
-	// * Set a Collection of tags <tt>tags</tt> with no associated logs.
-	// *
-	// * @param tags
-	// * @throws OlogException
-	// */
-	// public void set(Collection<TagBuilder> tags) throws OlogException;
 
 	/**
 	 * Add tag <tt>tag</tt> to log <tt>logId</tt> and remove the tag from all
@@ -139,11 +146,14 @@ public interface OlogClient {
 	 * @param logId
 	 * @throws OlogException
 	 */
+	@Deprecated
 	public Tag set(TagBuilder tag, Long logId) throws OlogException;
 
 	/**
 	 * Set tag <tt>tag</tt> on the set of logs <tt>logIds</tt> and remove it
 	 * from all others
+	 * 
+	 * TODO: all logIds should exist/ service should do proper transactions.
 	 * 
 	 * @param tag
 	 * @param logIds
@@ -170,12 +180,13 @@ public interface OlogClient {
 	 *            log id
 	 * @throws OlogException
 	 */
+	@Deprecated
 	public Logbook set(LogbookBuilder logbook, Long logId) throws OlogException;
 
 	/**
 	 * Set Logbook <tt>logbook</tt> to the logs <tt>logIds</tt> and remove it
 	 * from all other logs
-	 * 
+	 * TODO: all logids should exist, no nulls, check transaction
 	 * @param logbook
 	 *            logbook builder
 	 * @param logIds
@@ -187,6 +198,8 @@ public interface OlogClient {
 
 	/**
 	 * Create or replace property <tt>property</tt>
+	 * 
+	 * TODO: test creation of a new property, test changing this property, test old log entries still have old property structure
 	 * 
 	 * @param property
 	 * @return
@@ -216,6 +229,8 @@ public interface OlogClient {
 	/**
 	 * Update an existing property,
 	 * 
+	 * TODO: check non destructive nature, old attributes should not be touched. old entries should have old property.
+	 * 
 	 * @param property
 	 * @return
 	 */
@@ -223,6 +238,8 @@ public interface OlogClient {
 
 	/**
 	 * Update Tag <tt>tag </tt> by adding it to Log with name <tt>logName</tt>
+	 * 
+	 * TODO: logid valid.
 	 * 
 	 * @param tag
 	 *            tag builder
@@ -235,6 +252,8 @@ public interface OlogClient {
 	/**
 	 * Update the Tag <tt>tag</tt> by adding it to the set of the logs with ids
 	 * <tt>logIds</tt>
+	 * 
+	 * TODO: Transactional nature, 
 	 * 
 	 * @param tag
 	 *            tag builder
@@ -258,6 +277,8 @@ public interface OlogClient {
 			throws OlogException;
 
 	/**
+	 * 
+	 * TODO: transaction check
 	 * @param logIds
 	 * @param logbook
 	 * @throws OlogException
@@ -268,6 +289,8 @@ public interface OlogClient {
 	/**
 	 * Update Property <tt>property</tt> by adding it to Log with id
 	 * <tt>logId</tt>
+	 * 
+	 * TODO : service invalid payload, need attribute and value
 	 * 
 	 * @param property
 	 *            property builder
@@ -288,6 +311,7 @@ public interface OlogClient {
 	 *            collection of log ids
 	 * @throws OlogException
 	 */
+	@Deprecated
 	public Property update(PropertyBuilder property, Collection<Long> logIds)
 			throws OlogException;
 
@@ -304,6 +328,7 @@ public interface OlogClient {
 	 * @return
 	 * @throws OlogException
 	 */
+	@Deprecated
 	public Log findLogById(Long logId) throws OlogException;
 
 	/**
@@ -350,6 +375,7 @@ public interface OlogClient {
 	public Collection<Log> findLogsByProperty(String propertyName,
 			String attributeName, String attributeValue) throws OlogException;
 
+	public Collection<Log> findLogsByProperty(String propertyName) throws OlogException;
 	/**
 	 * Query for logs based on the criteria specified in the map
 	 * 
