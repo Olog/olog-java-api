@@ -567,32 +567,43 @@ public class OlogClientImpl implements OlogClient {
 
 	@Override
 	public Logbook set(LogbookBuilder logbook, Long logId) throws OlogException {
-		return wrappedSubmit(new SetLogbook(logbook, logId));
+		Collection<Long> logIds = new ArrayList<Long>();
+		logIds.add(logId);
+		return wrappedSubmit(new SetLogbook(logbook, logIds));
 
 	}
 
 	@Override
 	public Logbook set(LogbookBuilder logbook, Collection<Long> logIds)
 			throws OlogException {
-		return null;
-		// TODO Auto-generated method stub
+		return wrappedSubmit(new SetLogbook(logbook, logIds));
 
 	}
 
 	private class SetLogbook implements Callable<Logbook> {
 		private final LogbookBuilder logbook;
+		private final Collection<Long> logIds;
 
 		SetLogbook(LogbookBuilder logbook) {
 			this.logbook = logbook;
+			this.logIds = null;
 		}
 
-		public SetLogbook(LogbookBuilder logbook, Long logId) {
+		public SetLogbook(LogbookBuilder logbook, Collection<Long> logIds) {
 			this.logbook = logbook;
+			this.logIds = logIds;
 		}
 
 		@Override
 		public Logbook call() {
 			XmlLogbook xmlLogbook = logbook.toXml();
+			if(logIds != null){
+				XmlLogs xmlLogs = new XmlLogs();
+				for (Long logId : logIds) {
+					xmlLogs.addXmlLog(new XmlLog(logId));
+				}
+				xmlLogbook.setXmlLogs(xmlLogs);
+			}
 			ClientResponse clientResponse = service.path("logbooks")
 					.path(xmlLogbook.getName())
 					.accept(MediaType.APPLICATION_XML)
@@ -602,8 +613,6 @@ public class OlogClientImpl implements OlogClient {
 				return new Logbook(clientResponse.getEntity(XmlLogbook.class));
 			else
 				throw new UniformInterfaceException(clientResponse);
-
-			// return null;
 		}
 
 	}

@@ -489,6 +489,49 @@ public class SetDeleteIT {
 
 	@Test
 	public void setLogbook2LogsTest() {
+		LogbookBuilder testLogBook = logbook("testLogBook").owner(logbookOwner);
+		Map<String, String> map = new Hashtable<String, String>();
+		map.put("logbook", "testLogBook");
+		Collection<Log> queryResult;
+		Collection<Log> setLogs1 = null;
+		Collection<Log> setLogs2 = null;
+		try {
+			setLogs1 = client.set(logs1);
+			setLogs2 = client.set(logs2);
+			assertTrue("setLogs2 should only have a single log",
+					setLogs2.size() == 1);
+			// create a test logbook
+			client.set(testLogBook);
+			assertTrue("failed to create testlogbook with no entires.", client
+					.findLogs(map).size() == 0);
+			// update a logbook with a new entry
+			Collection<Long> logIds = new ArrayList<Long>();
+			for (Log log : setLogs2) {
+				logIds.add(log.getId());
+			}
+			client.set(testLogBook, logIds);
+			queryResult = client.findLogs(map);
+			// TODO : equality for queryResult.equals(setLogs2) should be true
+			assertTrue(
+					"failed to set a logbook onto a log",
+					queryResult.size() == setLogs2.size()
+							&& queryResult.containsAll(setLogs2));
+			// new set
+			for (Log log : setLogs1) {
+				logIds.add(log.getId());
+			}
+			client.set(testLogBook, logIds);
+			queryResult = client.findLogs(map);
+			assertTrue(
+					"failed to set a logbook onto a log",
+					queryResult.size() == setLogs1.size());			
+		} catch (Exception e) {
+
+		} finally {
+			client.deleteLogbook(testLogBook.build().getName());
+			client.delete(setLogs1);
+			client.delete(setLogs2);
+		}
 
 	}
 
