@@ -2,6 +2,9 @@ package edu.msu.nscl.olog.api;
 
 import static org.junit.Assert.*;
 
+import java.util.ArrayList;
+import java.util.Collection;
+
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -18,9 +21,7 @@ public class ErrorIT {
 	private static TagBuilder validTag = tag("Valid Tag");
 	private static PropertyBuilder validProperty = property("Valid Property")
 			.attribute("Valid Attribute");
-	private static LogBuilder validLog = log().description(
-			"Valid Log Entry for error condition tests.").appendToLogbook(
-			validLogbook);
+	private static Log validLog;
 
 	private static LogbookBuilder inValidLogbook = logbook("InValid Logbook");
 	private static TagBuilder inValidTag = tag("InValid Tag");
@@ -36,9 +37,10 @@ public class ErrorIT {
 			client.set(validTag);
 			client.set(validLogbook.owner("test"));
 			client.set(validProperty);
-
+			validLog = client.set(log()
+					.description("Valid Log Entry for error condition tests.")
+					.appendToLogbook(validLogbook).level("Info"));
 		} catch (Exception e) {
-			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
@@ -96,14 +98,23 @@ public class ErrorIT {
 		client.set(log);
 	}
 
-	@Test
+	@Test(expected = OlogException.class)
 	public void setTagOnInvalidLog() {
-
+		Collection<Long> logIds = new ArrayList<Long>();
+		logIds.add(validLog.getId());
+		logIds.add(12345L);
+		client.set(validTag, logIds);
+		Log queryLog = client.getLog(validLog.getId());
+		assertTrue(
+				"invalid request to add tag to logs partially executed, unexpected modification of validLog",
+				validLog.equals(queryLog));
 	}
 
 	@Test
 	public void setInvalidTagOnLog() {
-
+		client.update(inValidTag, validLog.getId());
+		assertTrue("invalid request to add invalid tag to log",
+				validLog.equals(client.getLog(validLog.getId())));
 	}
 
 }
