@@ -373,7 +373,6 @@ public class OlogClientImpl implements OlogClient {
 			}
 		});
 	}
-	
 
 	@Override
 	public Collection<String> listAttributes(String propertyName)
@@ -480,21 +479,25 @@ public class OlogClientImpl implements OlogClient {
 		}
 
 		@Override
-		public Collection<Log> call() throws Exception {
+		public Collection<Log> call() {
 			XmlLogs xmlLogs = new XmlLogs();
 			for (LogBuilder log : logs) {
 				xmlLogs.getLogs().add(log.toXml());
 			}
-			ClientResponse response = service.path("logs")
+			ClientResponse clientResponse = service.path("logs")
 					.accept(MediaType.APPLICATION_XML)
 					.accept(MediaType.APPLICATION_JSON)
 					.post(ClientResponse.class, xmlLogs);
-			XmlLogs responseLogs = response.getEntity(XmlLogs.class);
-			Collection<Log> returnLogs = new HashSet<Log>();
-			for (XmlLog xmllog : responseLogs.getLogs()) {
-				returnLogs.add(new Log(xmllog));
-			}
-			return Collections.unmodifiableCollection(returnLogs);
+			if (clientResponse.getStatus() < 300) {
+				XmlLogs responseLogs = clientResponse.getEntity(XmlLogs.class);
+				Collection<Log> returnLogs = new HashSet<Log>();
+				for (XmlLog xmllog : responseLogs.getLogs()) {
+					returnLogs.add(new Log(xmllog));
+				}
+				return Collections.unmodifiableCollection(returnLogs);
+			} else
+				throw new UniformInterfaceException(clientResponse);
+
 		}
 	}
 
@@ -546,11 +549,14 @@ public class OlogClientImpl implements OlogClient {
 				}
 				xmlTag.setXmlLogs(xmlLogs);
 			}
-			ClientResponse response = service.path("tags")
+			ClientResponse clientResponse = service.path("tags")
 					.path(tag.toXml().getName())
 					.accept(MediaType.APPLICATION_XML)
 					.put(ClientResponse.class, xmlTag);
-			return new Tag(response.getEntity(XmlTag.class));
+			if (clientResponse.getStatus() < 300)
+				return new Tag(clientResponse.getEntity(XmlTag.class));
+			else
+				throw new UniformInterfaceException(clientResponse);
 		}
 	}
 
@@ -587,12 +593,16 @@ public class OlogClientImpl implements OlogClient {
 		@Override
 		public Logbook call() {
 			XmlLogbook xmlLogbook = logbook.toXml();
-			ClientResponse response = service.path("logbooks")
+			ClientResponse clientResponse = service.path("logbooks")
 					.path(xmlLogbook.getName())
 					.accept(MediaType.APPLICATION_XML)
 					.accept(MediaType.APPLICATION_JSON)
 					.put(ClientResponse.class, xmlLogbook);
-			return new Logbook(response.getEntity(XmlLogbook.class));
+			if (clientResponse.getStatus() < 300)
+				return new Logbook(clientResponse.getEntity(XmlLogbook.class));
+			else
+				throw new UniformInterfaceException(clientResponse);
+
 			// return null;
 		}
 
@@ -618,7 +628,11 @@ public class OlogClientImpl implements OlogClient {
 					.accept(MediaType.APPLICATION_XML)
 					.accept(MediaType.APPLICATION_JSON)
 					.put(ClientResponse.class, xmlProperty);
-			return new Property(clientResponse.getEntity(XmlProperty.class));
+			if (clientResponse.getStatus() < 300)
+				return new Property(clientResponse.getEntity(XmlProperty.class));
+			else
+				throw new UniformInterfaceException(clientResponse);
+
 		}
 
 	}
@@ -637,12 +651,15 @@ public class OlogClientImpl implements OlogClient {
 
 		@Override
 		public Log call() throws Exception {
-			ClientResponse response = service.path("logs")
+			ClientResponse clientResponse = service.path("logs")
 					.path(String.valueOf(log.getId()))
 					.accept(MediaType.APPLICATION_XML)
 					.accept(MediaType.APPLICATION_JSON)
 					.post(ClientResponse.class, log);
-			return new Log(response.getEntity(XmlLog.class));
+			if (clientResponse.getStatus() < 300)
+				return new Log(clientResponse.getEntity(XmlLog.class));
+			else
+				throw new UniformInterfaceException(clientResponse);
 		}
 	}
 
@@ -664,7 +681,12 @@ public class OlogClientImpl implements OlogClient {
 						.accept(MediaType.APPLICATION_XML)
 						.accept(MediaType.APPLICATION_JSON)
 						.post(ClientResponse.class, xmlProperty);
-				return new Property(clientResponse.getEntity(XmlProperty.class));
+				if (clientResponse.getStatus() < 300)
+					return new Property(
+							clientResponse.getEntity(XmlProperty.class));
+				else
+					throw new UniformInterfaceException(clientResponse);
+
 			}
 		});
 	}
@@ -677,13 +699,16 @@ public class OlogClientImpl implements OlogClient {
 
 			@Override
 			public Tag call() {
-				ClientResponse response = service.path("tags")
+				ClientResponse clientResponse = service.path("tags")
 						.path(xmlTag.getName())
 						.path(String.valueOf(appendLogId))
 						.accept(MediaType.APPLICATION_XML)
 						.accept(MediaType.APPLICATION_JSON)
 						.put(ClientResponse.class);
-				return new Tag(response.getEntity(XmlTag.class));
+				if (clientResponse.getStatus() < 300)
+					return new Tag(clientResponse.getEntity(XmlTag.class));
+				else
+					throw new UniformInterfaceException(clientResponse);
 			}
 
 		});
@@ -703,12 +728,15 @@ public class OlogClientImpl implements OlogClient {
 					logs.addXmlLog(new XmlLog(logId));
 				}
 				xmlTag.setXmlLogs(logs);
-				ClientResponse reponse = service.path("tags")
+				ClientResponse clientResponse = service.path("tags")
 						.path(xmlTag.getName())
 						.accept(MediaType.APPLICATION_XML)
 						.accept(MediaType.APPLICATION_JSON)
 						.post(ClientResponse.class, xmlTag);
-				return new Tag(reponse.getEntity(XmlTag.class));
+				if (clientResponse.getStatus() < 300)
+					return new Tag(clientResponse.getEntity(XmlTag.class));
+				else
+					throw new UniformInterfaceException(clientResponse);
 
 			}
 		});
@@ -721,12 +749,16 @@ public class OlogClientImpl implements OlogClient {
 		return wrappedSubmit(new Callable<Logbook>() {
 			@Override
 			public Logbook call() {
-				ClientResponse response = service.path("logbooks")
+				ClientResponse clientResponse = service.path("logbooks")
 						.path(xmlLogbook.getName()).path(logId.toString())
 						.accept(MediaType.APPLICATION_XML)
 						.accept(MediaType.APPLICATION_JSON)
 						.put(ClientResponse.class);
-				return new Logbook(response.getEntity(XmlLogbook.class));
+				if (clientResponse.getStatus() < 300)
+					return new Logbook(
+							clientResponse.getEntity(XmlLogbook.class));
+				else
+					throw new UniformInterfaceException(clientResponse);
 			}
 		});
 	}
@@ -761,12 +793,15 @@ public class OlogClientImpl implements OlogClient {
 				}
 				xmlLogBook.setXmlLogs(xmlLogs);
 			}
-			ClientResponse response = service.path("logbooks")
+			ClientResponse clientResponse = service.path("logbooks")
 					.path(xmlLogBook.getName())
 					.accept(MediaType.APPLICATION_XML)
 					.accept(MediaType.APPLICATION_JSON)
 					.post(ClientResponse.class, xmlLogBook);
-			return new Logbook(response.getEntity(XmlLogbook.class));
+			if (clientResponse.getStatus() < 300)
+				return new Logbook(clientResponse.getEntity(XmlLogbook.class));
+			else
+				throw new UniformInterfaceException(clientResponse);
 		}
 	}
 
@@ -783,7 +818,10 @@ public class OlogClientImpl implements OlogClient {
 						.accept(MediaType.APPLICATION_XML)
 						.accept(MediaType.APPLICATION_JSON)
 						.put(ClientResponse.class, xmlProperty);
-				return new Log(clientResponse.getEntity(XmlLog.class));
+				if (clientResponse.getStatus() < 300)
+					return new Log(clientResponse.getEntity(XmlLog.class));
+				else
+					throw new UniformInterfaceException(clientResponse);
 			}
 		});
 
@@ -888,7 +926,7 @@ public class OlogClientImpl implements OlogClient {
 			throws OlogException {
 		return wrappedSubmit(new FindLogs("logbook", logbook));
 	}
-	
+
 	@Override
 	public Collection<Log> findLogsByProperty(String propertyName)
 			throws OlogException {
@@ -899,9 +937,9 @@ public class OlogClientImpl implements OlogClient {
 	public Collection<Log> findLogsByProperty(String propertyName,
 			String attributeName, String attributeValue) throws OlogException {
 		MultivaluedMap<String, String> mMap = new MultivaluedMapImpl();
-		mMap.putSingle(propertyName+"."+attributeName, attributeValue);
+		mMap.putSingle(propertyName + "." + attributeName, attributeValue);
 		return wrappedSubmit(new FindLogs(mMap));
-	}	
+	}
 
 	@Override
 	public Collection<Log> findLogs(Map<String, String> map)
