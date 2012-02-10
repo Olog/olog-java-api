@@ -584,7 +584,7 @@ public class OlogClientImpl implements OlogClient {
 		@Override
 		public Logbook call() {
 			XmlLogbook xmlLogbook = logbook.toXml();
-			if(logIds != null){
+			if (logIds != null) {
 				XmlLogs xmlLogs = new XmlLogs();
 				for (Long logId : logIds) {
 					xmlLogs.addXmlLog(new XmlLog(logId));
@@ -1060,9 +1060,15 @@ public class OlogClientImpl implements OlogClient {
 	}
 
 	@Override
-	public void delete(TagBuilder tag, Long logId) throws OlogException {
-		// TODO Auto-generated method stub
-
+	public void delete(final TagBuilder tag, final Long logId) throws OlogException {
+		wrappedSubmit(new Runnable() {
+			@Override
+			public void run() {
+				service.path("tags").path(tag.build().getName()).path(logId.toString())
+						.accept(MediaType.TEXT_XML)
+						.accept(MediaType.APPLICATION_JSON).delete();
+			}
+		});
 	}
 
 	@Override
@@ -1086,10 +1092,16 @@ public class OlogClientImpl implements OlogClient {
 	}
 
 	@Override
-	public void delete(PropertyBuilder property, Long logId)
+	public void delete(final PropertyBuilder property, final Long logId)
 			throws OlogException {
-		// TODO Auto-generated method stub
-
+		wrappedSubmit(new Runnable() {
+			@Override
+			public void run() {
+				service.path("properties").path(property.build().getName()).path(logId.toString())
+						.accept(MediaType.TEXT_XML)
+						.accept(MediaType.APPLICATION_JSON).delete(property.toXml());
+			}
+		});
 	}
 
 	@Override

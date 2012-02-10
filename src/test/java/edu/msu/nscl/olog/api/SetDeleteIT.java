@@ -36,9 +36,11 @@ public class SetDeleteIT {
 
 	// Default logbook for all tests
 	private static LogbookBuilder defaultLogBook;
-
 	// Default tag for all tests
 	private static TagBuilder defaultTag;
+	// Default Property for all tests
+	private static PropertyBuilder defaultProperty;
+	private static String defaultAttributeName;
 	// A default set of logs
 	private static LogBuilder defaultLog1;
 	private static LogBuilder defaultLog2;
@@ -64,6 +66,11 @@ public class SetDeleteIT {
 		// Add a default Tag
 		defaultTag = tag("defaultTag");
 		client.set(defaultTag);
+		// Add a default Property
+		defaultAttributeName = "defaultAttribute";
+		defaultProperty = property("defaultProperty").attribute(
+				defaultAttributeName);
+		client.set(defaultProperty);
 		// define the default logs
 		defaultLog1 = log().description("defaulLog1")
 				.description("some details").level("Info")
@@ -453,9 +460,9 @@ public class SetDeleteIT {
 			}
 			client.set(testLogBook, logIds);
 			queryResult = client.findLogs(map);
-			assertTrue(
-					"failed to set a logbook onto a log",
-					queryResult.size() == setLogs1.size());			
+			assertTrue("failed to set a logbook onto a log, expected "
+					+ setLogs1.size() + " found " + queryResult.size(),
+					queryResult.size() == setLogs1.size());
 		} catch (Exception e) {
 
 		} finally {
@@ -465,35 +472,74 @@ public class SetDeleteIT {
 		}
 
 	}
-	
+
+	/**
+	 * Delete a Tag from a Tag without affected any other logs with the same
+	 * tag.
+	 */
 	@Test
-	public void deleteTagFromLog(){
-		
+	public void deleteTagFromLog() {
+		try {
+			Log log1 = client.set(defaultLog1.appendTag(defaultTag));
+			Log log2 = client.set(defaultLog2.appendTag(defaultTag));
+			Collection<Log> queryResult = client.findLogsByTag(defaultTag
+					.build().getName());
+			assertTrue(
+					"Failed to attach defaultTag to defaultLog1 and defaultLog2",
+					queryResult.contains(log1) && queryResult.contains(log2));
+			client.delete(defaultTag, log1.getId());
+			queryResult = client.findLogsByTag(defaultTag.build().getName());
+			assertTrue("Failed to remove defaultTag from defaultLog1",
+					!queryResult.contains(log1));
+			assertTrue("Removed defaultTag from defaultLog2",
+					queryResult.contains(log2));
+		} catch (Exception e) {
+			fail(e.getCause().toString());
+		}
 	}
-	
+
 	@Test
-	public void deleteTagFromLogs(){
-		
+	public void deleteTagFromLogs() {
+
 	}
-	
+
 	@Test
-	public void deletePropertyFromLog(){
-		
+	public void deletePropertyFromLog() {
+		try {
+			Log log1 = client.set(defaultLog1.appendProperty(defaultProperty
+					.attribute(defaultAttributeName, "log1")));
+			Log log2 = client.set(defaultLog2.appendProperty(defaultProperty
+					.attribute(defaultAttributeName, "log2")));
+			Collection<Log> queryResult = client
+					.findLogsByProperty(defaultProperty.build().getName());
+			assertTrue(
+					"Failed to attach defaultProperty to defaultLog1 and defaultLog2",
+					queryResult.contains(log1) && queryResult.contains(log2));
+			client.delete(defaultProperty, log1.getId());
+			queryResult = client.findLogsByProperty(defaultProperty.build()
+					.getName());
+			assertTrue("Failed to remove defaultProperty from defaultLog1",
+					!queryResult.contains(log1));
+			assertTrue("Removed defaultProperty from defaultLog2",
+					queryResult.contains(log2));
+		} catch (Exception e) {
+			fail(e.getCause().toString());
+		}
 	}
-	
+
 	@Test
-	public void deletePropertyFromLogs(){
-		
+	public void deletePropertyFromLogs() {
+
 	}
-	
+
 	@Test
-	public void deleteLogbookFromLog(){
-		
+	public void deleteLogbookFromLog() {
+
 	}
-	
+
 	@Test
-	public void deleteLogbookFromLogs(){
-		
+	public void deleteLogbookFromLogs() {
+
 	}
 
 	/**
