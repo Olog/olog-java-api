@@ -1079,9 +1079,15 @@ public class OlogClientImpl implements OlogClient {
 	}
 
 	@Override
-	public void delete(LogbookBuilder logbook, Long logId) throws OlogException {
-		// TODO Auto-generated method stub
-
+	public void delete(final LogbookBuilder logbook, final Long logId) throws OlogException {
+		wrappedSubmit(new Runnable() {
+			@Override
+			public void run() {
+				service.path("logbooks").path(logbook.build().getName()).path(logId.toString())
+						.accept(MediaType.TEXT_XML)
+						.accept(MediaType.APPLICATION_JSON).delete();
+			}
+		});
 	}
 
 	@Override

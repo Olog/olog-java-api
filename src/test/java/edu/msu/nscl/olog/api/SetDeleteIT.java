@@ -474,7 +474,7 @@ public class SetDeleteIT {
 	}
 
 	/**
-	 * Delete a Tag from a Tag without affected any other logs with the same
+	 * Delete a Tag from a log without affected any other logs with the same
 	 * tag.
 	 */
 	@Test
@@ -532,8 +532,33 @@ public class SetDeleteIT {
 
 	}
 
+	/**
+	 * Delete a Logbook from a log without affected any other logs with the same
+	 * Logbook.
+	 */
 	@Test
 	public void deleteLogbookFromLog() {
+		try {
+			LogbookBuilder testLogbook = logbook("testLogbook").owner("me");
+			client.set(testLogbook);
+			Log log1 = client.set(defaultLog1.appendToLogbook(testLogbook));
+			Log log2 = client.set(defaultLog2.appendToLogbook(testLogbook));
+			Collection<Log> queryResult = client.findLogsByLogbook(testLogbook
+					.build().getName());
+			assertTrue(
+					"Failed to attach testLogbook to defaultLog1 and defaultLog2",
+					queryResult.contains(log1) && queryResult.contains(log2));
+			client.delete(testLogbook, log1.getId());
+			queryResult = client.findLogsByLogbook(testLogbook.build().getName());
+			assertTrue("Failed to remove testLogbook from defaultLog1",
+					!queryResult.contains(log1));
+			assertTrue("Removed testLogbook from defaultLog2",
+					queryResult.contains(log2));
+		} catch (Exception e) {
+			fail(e.getCause().toString());
+		} finally{
+			
+		}
 
 	}
 
