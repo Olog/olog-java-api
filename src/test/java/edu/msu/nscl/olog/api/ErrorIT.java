@@ -132,30 +132,30 @@ public class ErrorIT {
 				"invalid request to add logbook2 to logs partially executed, unexpected modification of validLog",
 				validLog.equals(queryLog));
 	}
-	
-	@Test
-	public void deleteNonExistingLog(){
+
+	@Test(expected = OlogException.class)
+	public void deleteNonExistingLog() {
+		client.delete(1234567890L);
+	}
+
+	@Test(expected = OlogException.class)
+	public void deleteNonExistingTagFromLog() {
 		
 	}
-	
+
 	@Test
-	public void deleteNonExistingTagFromLog(){
-		
+	public void deleteNonExistingLogbookFromLog() {
+
 	}
-	
+
 	@Test
-	public void deleteNonExistingLogbookFromLog(){
-		
+	public void deleteNonExistingPropertyFromLog() {
+
 	}
-	
+
 	@Test
-	public void deleteNonExistingPropertyFromLog(){
-		
-	}
-	
-	@Test
-	public void deleteOnlyLogbookFromLog(){
-		
+	public void deleteOnlyLogbookFromLog() {
+
 	}
 
 }
