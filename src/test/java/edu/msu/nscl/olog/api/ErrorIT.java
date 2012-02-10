@@ -132,5 +132,30 @@ public class ErrorIT {
 				"invalid request to add logbook2 to logs partially executed, unexpected modification of validLog",
 				validLog.equals(queryLog));
 	}
+	
+	@Test
+	public void deleteNonExistingLog(){
+		
+	}
+	
+	@Test
+	public void deleteNonExistingTagFromLog(){
+		
+	}
+	
+	@Test
+	public void deleteNonExistingLogbookFromLog(){
+		
+	}
+	
+	@Test
+	public void deleteNonExistingPropertyFromLog(){
+		
+	}
+	
+	@Test
+	public void deleteOnlyLogbookFromLog(){
+		
+	}
 
 }
