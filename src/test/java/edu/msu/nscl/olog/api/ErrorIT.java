@@ -18,6 +18,7 @@ import static edu.msu.nscl.olog.api.LogbookBuilder.*;
 public class ErrorIT {
 
 	private static LogbookBuilder validLogbook = logbook("Valid Logbook");
+	private static LogbookBuilder validLogbook2 = logbook("Valid Logbook2");
 	private static TagBuilder validTag = tag("Valid Tag");
 	private static PropertyBuilder validProperty = property("Valid Property")
 			.attribute("Valid Attribute");
@@ -36,6 +37,7 @@ public class ErrorIT {
 					.withHTTPAuthentication(true).create();
 			client.set(validTag);
 			client.set(validLogbook.owner("test"));
+			client.set(validLogbook2.owner("test"));
 			client.set(validProperty);
 			validLog = client.set(log()
 					.description("Valid Log Entry for error condition tests.")
@@ -49,7 +51,9 @@ public class ErrorIT {
 	public static void tearDown() {
 		client.deleteTag(validTag.build().getName());
 		client.deleteLogbook(validLogbook.build().getName());
+		client.deleteLogbook(validLogbook2.build().getName());
 		client.deleteProperty(validProperty.build().getName());
+		client.delete(validLog.getId());
 	}
 
 	@Test(expected = OlogException.class)
@@ -110,11 +114,23 @@ public class ErrorIT {
 				validLog.equals(queryLog));
 	}
 
-	@Test
+	@Test(expected = OlogException.class)
 	public void setInvalidTagOnLog() {
 		client.update(inValidTag, validLog.getId());
 		assertTrue("invalid request to add invalid tag to log",
 				validLog.equals(client.getLog(validLog.getId())));
+	}
+
+	@Test(expected = OlogException.class)
+	public void setLogbookOnInvalidLog() {
+		Collection<Long> logIds = new ArrayList();
+		logIds.add(validLog.getId());
+		logIds.add(12345L);
+		client.set(validLogbook2, logIds);
+		Log queryLog = client.getLog(validLog.getId());
+		assertTrue(
+				"invalid request to add logbook2 to logs partially executed, unexpected modification of validLog",
+				validLog.equals(queryLog));
 	}
 
 }
