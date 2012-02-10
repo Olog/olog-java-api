@@ -162,9 +162,13 @@ public class ErrorIT {
 		client.delete(validLogbook2, validLog.getId());
 	}
 
-	@Test
+	@Test (expected = OlogException.class)
 	public void deleteNonExistingPropertyFromLog() {
-
+		assertTrue("validProperty is present on the log",
+				client.getLog(validLog.getId()).getProperties() == null
+						|| !client.getLog(validLog.getId()).getProperties()
+								.contains(validProperty));
+		client.delete(validProperty, validLog.getId());
 	}
 
 	/**
