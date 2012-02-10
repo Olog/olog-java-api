@@ -479,9 +479,11 @@ public class SetDeleteIT {
 	 */
 	@Test
 	public void deleteTagFromLog() {
+		Log log1 = null;
+		Log log2 = null;
 		try {
-			Log log1 = client.set(defaultLog1.appendTag(defaultTag));
-			Log log2 = client.set(defaultLog2.appendTag(defaultTag));
+			log1 = client.set(defaultLog1.appendTag(defaultTag));
+			log2 = client.set(defaultLog2.appendTag(defaultTag));
 			Collection<Log> queryResult = client.findLogsByTag(defaultTag
 					.build().getName());
 			assertTrue(
@@ -495,6 +497,11 @@ public class SetDeleteIT {
 					queryResult.contains(log2));
 		} catch (Exception e) {
 			fail(e.getCause().toString());
+		} finally {
+			if (log1 != null)
+				client.delete(log1.getId());
+			if (log2 != null)
+				client.delete(log2.getId());
 		}
 	}
 
@@ -505,10 +512,12 @@ public class SetDeleteIT {
 
 	@Test
 	public void deletePropertyFromLog() {
+		Log log1 = null;
+		Log log2 = null;
 		try {
-			Log log1 = client.set(defaultLog1.appendProperty(defaultProperty
+			log1 = client.set(defaultLog1.appendProperty(defaultProperty
 					.attribute(defaultAttributeName, "log1")));
-			Log log2 = client.set(defaultLog2.appendProperty(defaultProperty
+			log2 = client.set(defaultLog2.appendProperty(defaultProperty
 					.attribute(defaultAttributeName, "log2")));
 			Collection<Log> queryResult = client
 					.findLogsByProperty(defaultProperty.build().getName());
@@ -524,6 +533,11 @@ public class SetDeleteIT {
 					queryResult.contains(log2));
 		} catch (Exception e) {
 			fail(e.getCause().toString());
+		} finally {
+			if (log1 != null)
+				client.delete(log1.getId());
+			if (log2 != null)
+				client.delete(log2.getId());
 		}
 	}
 
@@ -541,8 +555,8 @@ public class SetDeleteIT {
 		LogbookBuilder testLogbook = logbook("testLogbook").owner("me");
 		Logbook setLogbook = null;
 		Log log1 = null;
-		Log log2 = null ;
-		try {			
+		Log log2 = null;
+		try {
 			setLogbook = client.set(testLogbook);
 			log1 = client.set(defaultLog1.appendToLogbook(testLogbook));
 			log2 = client.set(defaultLog2.appendToLogbook(testLogbook));
@@ -552,17 +566,20 @@ public class SetDeleteIT {
 					"Failed to attach testLogbook to defaultLog1 and defaultLog2",
 					queryResult.contains(log1) && queryResult.contains(log2));
 			client.delete(testLogbook, log1.getId());
-			queryResult = client.findLogsByLogbook(testLogbook.build().getName());
+			queryResult = client.findLogsByLogbook(testLogbook.build()
+					.getName());
 			assertTrue("Failed to remove testLogbook from defaultLog1",
 					!queryResult.contains(log1));
 			assertTrue("Removed testLogbook from defaultLog2",
 					queryResult.contains(log2));
 		} catch (Exception e) {
 			fail(e.getCause().toString());
-		} finally{
+		} finally {
 			client.deleteLogbook(setLogbook.getName());
-			client.delete(log1.getId());
-			client.delete(log2.getId());
+			if (log1 != null)
+				client.delete(log1.getId());
+			if (log2 != null)
+				client.delete(log2.getId());
 		}
 
 	}
