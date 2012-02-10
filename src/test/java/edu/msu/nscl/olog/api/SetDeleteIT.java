@@ -388,40 +388,6 @@ public class SetDeleteIT {
 		assertTrue("attachment File clean up failed", success);
 	}
 
-	/*
-	 * These Tests are to test the operations of attaching tags, logbooks and
-	 * properties to logs.
-	 */
-
-	/**
-	 * Destructive operation which removes the tag from all other logs and only
-	 * adds it to the specified log
-	 */
-	@Test
-	public void setTag2LogTest() {
-
-		String tagName = defaultTag.toXml().getName();
-
-		Map<String, String> map = new Hashtable<String, String>();
-		map.put("tag", tagName);
-		Log setLogId = null;
-
-		try {
-			setLogId = client.set(defaultLog3);
-			assertTrue("failed to set the log",
-					setLogId != null && setLogId.getId() != null);
-			// Set Tag on single Log
-			client.set(defaultTag, setLogId.getId());
-			Collection<Log> result = client.findLogs(map);
-			assertTrue("failed to set tag on log " + setLogId.getId(),
-					checkEqualityWithoutID(result, defaultLog3));
-		} catch (Exception e) {
-			fail("setTag2Log" + e.getMessage());
-		} finally {
-			client.delete(setLogId.getId());
-		}
-	}
-
 	@Test
 	public void setTag2LogsTest() {
 		String tagName = defaultTag.toXml().getName();
@@ -452,41 +418,6 @@ public class SetDeleteIT {
 	 * Test destructive set on a logbook, the logbook should be added to only
 	 * those logs specified and removed from all others
 	 */
-	// @Test
-	public void setLogbook2logTest() {
-		LogbookBuilder testLogBook = logbook("testLogBook").owner(logbookOwner);
-		Map<String, String> map = new Hashtable<String, String>();
-		map.put("logbook", "testLogBook");
-		Collection<Log> queryResult;
-		Collection<Log> setLogs1 = null;
-		Collection<Log> setLogs2 = null;
-
-		try {
-			setLogs1 = client.set(logs1);
-			setLogs2 = client.set(logs2);
-			assertTrue("setLogs2 should only have a single log",
-					setLogs2.size() == 1);
-			// create a test logbook
-			client.set(testLogBook);
-			assertTrue("failed to create testlogbook with no entires.", client
-					.findLogs(map).size() == 0);
-			// update a logbook with a new entry
-			client.set(testLogBook, LogUtil.getLogIds(setLogs2).iterator()
-					.next());
-			queryResult = client.findLogs(map);
-			// TODO add check
-			assertTrue("failed to set a logbook onto a log",
-					checkEqualityWithoutID(queryResult, logs2));
-
-		} catch (Exception e) {
-
-		} finally {
-			client.deleteLogbook(testLogBook.build().getName());
-			client.delete(setLogs1);
-			client.delete(setLogs2);
-		}
-	}
-
 	@Test
 	public void setLogbook2LogsTest() {
 		LogbookBuilder testLogBook = logbook("testLogBook").owner(logbookOwner);
@@ -533,6 +464,36 @@ public class SetDeleteIT {
 			client.delete(setLogs2);
 		}
 
+	}
+	
+	@Test
+	public void deleteTagFromLog(){
+		
+	}
+	
+	@Test
+	public void deleteTagFromLogs(){
+		
+	}
+	
+	@Test
+	public void deletePropertyFromLog(){
+		
+	}
+	
+	@Test
+	public void deletePropertyFromLogs(){
+		
+	}
+	
+	@Test
+	public void deleteLogbookFromLog(){
+		
+	}
+	
+	@Test
+	public void deleteLogbookFromLogs(){
+		
 	}
 
 	/**

@@ -508,11 +508,6 @@ public class OlogClientImpl implements OlogClient {
 	}
 
 	@Override
-	public Tag set(TagBuilder tag, Long logId) throws OlogException {
-		return wrappedSubmit(new SetTag(tag, logId));
-	}
-
-	@Override
 	public Tag set(TagBuilder tag, Collection<Long> logIds)
 			throws OlogException {
 		return wrappedSubmit(new SetTag(tag, logIds));
@@ -563,14 +558,6 @@ public class OlogClientImpl implements OlogClient {
 	@Override
 	public Logbook set(LogbookBuilder logbook) throws OlogException {
 		return wrappedSubmit(new SetLogbook(logbook));
-	}
-
-	@Override
-	public Logbook set(LogbookBuilder logbook, Long logId) throws OlogException {
-		Collection<Long> logIds = new ArrayList<Long>();
-		logIds.add(logId);
-		return wrappedSubmit(new SetLogbook(logbook, logIds));
-
 	}
 
 	@Override
@@ -675,7 +662,6 @@ public class OlogClientImpl implements OlogClient {
 	@Override
 	public Collection<Log> update(Collection<LogBuilder> logs)
 			throws OlogException {
-		// TODO Auto-generated method stub
 		return null;
 	}
 
@@ -833,14 +819,6 @@ public class OlogClientImpl implements OlogClient {
 					throw new UniformInterfaceException(clientResponse);
 			}
 		});
-
-	}
-
-	@Override
-	public Property update(PropertyBuilder property, Collection<Long> logIds)
-			throws OlogException {
-		return null;
-		// TODO Auto-generated method stub
 
 	}
 

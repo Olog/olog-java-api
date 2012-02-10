@@ -139,17 +139,6 @@ public interface OlogClient {
 	public Tag set(TagBuilder tag) throws OlogException;
 
 	/**
-	 * Add tag <tt>tag</tt> to log <tt>logId</tt> and remove the tag from all
-	 * other logs
-	 * 
-	 * @param tag
-	 * @param logId
-	 * @throws OlogException
-	 */
-	@Deprecated
-	public Tag set(TagBuilder tag, Long logId) throws OlogException;
-
-	/**
 	 * Set tag <tt>tag</tt> on the set of logs <tt>logIds</tt> and remove it
 	 * from all others
 	 * 
@@ -169,19 +158,6 @@ public interface OlogClient {
 	 * @throws OlogException
 	 */
 	public Logbook set(LogbookBuilder logbookBuilder) throws OlogException;
-
-	/**
-	 * Set Logbook <tt>logbook</tt> to the log <tt>logId</tt> and remove it from
-	 * all other logs
-	 * 
-	 * @param logbook
-	 *            logbook builder
-	 * @param logId
-	 *            log id
-	 * @throws OlogException
-	 */
-	@Deprecated
-	public Logbook set(LogbookBuilder logbook, Long logId) throws OlogException;
 
 	/**
 	 * Set Logbook <tt>logbook</tt> to the logs <tt>logIds</tt> and remove it
@@ -299,20 +275,6 @@ public interface OlogClient {
 	 * @throws OlogException
 	 */
 	public Log update(PropertyBuilder property, Long logId)
-			throws OlogException;
-
-	/**
-	 * Update the Property <tt>property</tt> by adding it to the set of the logs
-	 * with ids <tt>logIds</tt>
-	 * 
-	 * @param property
-	 *            property builder
-	 * @param logIds
-	 *            collection of log ids
-	 * @throws OlogException
-	 */
-	@Deprecated
-	public Property update(PropertyBuilder property, Collection<Long> logIds)
 			throws OlogException;
 
 	/**
