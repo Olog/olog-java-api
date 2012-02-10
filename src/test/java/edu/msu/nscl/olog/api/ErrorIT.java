@@ -139,7 +139,7 @@ public class ErrorIT {
 	}
 
 	/**
-	 * deleted a tag from a log which does not have it
+	 * Delete a tag from a log which does not have it
 	 */
 	@Test(expected = OlogException.class)
 	public void deleteNonExistingTagFromLog() {
@@ -150,9 +150,16 @@ public class ErrorIT {
 		client.delete(validTag, validLog.getId());
 	}
 
-	@Test
+	/**
+	 * Delete a Logbook which is not attached to a log entry
+	 */
+	@Test(expected = OlogException.class)
 	public void deleteNonExistingLogbookFromLog() {
-
+		assertTrue("Logbook is present on the log",
+				client.getLog(validLog.getId()).getLogbooks() == null
+						|| !client.getLog(validLog.getId()).getLogbooks()
+								.contains(validLogbook2));
+		client.delete(validLogbook2, validLog.getId());
 	}
 
 	@Test
@@ -160,9 +167,20 @@ public class ErrorIT {
 
 	}
 
-	@Test
+	/**
+	 * Delete the last logbook assocaited with a log entry
+	 */
+	@Test(expected = OlogException.class)
 	public void deleteOnlyLogbookFromLog() {
-
+		assertTrue("Logbook is present on the log",
+				client.getLog(validLog.getId()).getLogbooks().size() == 1
+						|| !client.getLog(validLog.getId()).getLogbooks()
+								.contains(validLogbook));
+		client.delete(validLogbook, validLog.getId());
+		assertTrue("Last valid Logbook is was removed from  validLog",
+				client.getLog(validLog.getId()).getLogbooks().size() == 1
+						|| !client.getLog(validLog.getId()).getLogbooks()
+								.contains(validLogbook));
 	}
 
 }
