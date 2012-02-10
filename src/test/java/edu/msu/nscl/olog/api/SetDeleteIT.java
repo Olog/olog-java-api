@@ -538,11 +538,14 @@ public class SetDeleteIT {
 	 */
 	@Test
 	public void deleteLogbookFromLog() {
-		try {
-			LogbookBuilder testLogbook = logbook("testLogbook").owner("me");
-			client.set(testLogbook);
-			Log log1 = client.set(defaultLog1.appendToLogbook(testLogbook));
-			Log log2 = client.set(defaultLog2.appendToLogbook(testLogbook));
+		LogbookBuilder testLogbook = logbook("testLogbook").owner("me");
+		Logbook setLogbook = null;
+		Log log1 = null;
+		Log log2 = null ;
+		try {			
+			setLogbook = client.set(testLogbook);
+			log1 = client.set(defaultLog1.appendToLogbook(testLogbook));
+			log2 = client.set(defaultLog2.appendToLogbook(testLogbook));
 			Collection<Log> queryResult = client.findLogsByLogbook(testLogbook
 					.build().getName());
 			assertTrue(
@@ -557,7 +560,9 @@ public class SetDeleteIT {
 		} catch (Exception e) {
 			fail(e.getCause().toString());
 		} finally{
-			
+			client.deleteLogbook(setLogbook.getName());
+			client.delete(log1.getId());
+			client.delete(log2.getId());
 		}
 
 	}
