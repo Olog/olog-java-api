@@ -138,9 +138,16 @@ public class ErrorIT {
 		client.delete(1234567890L);
 	}
 
+	/**
+	 * deleted a tag from a log which does not have it
+	 */
 	@Test(expected = OlogException.class)
 	public void deleteNonExistingTagFromLog() {
-		
+		assertTrue("Tag is present on the log", client.getLog(validLog.getId())
+				.getTags() == null
+				|| !client.getLog(validLog.getId()).getTags()
+						.contains(validTag));
+		client.delete(validTag, validLog.getId());
 	}
 
 	@Test

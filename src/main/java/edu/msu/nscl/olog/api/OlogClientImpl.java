@@ -402,8 +402,7 @@ public class OlogClientImpl implements OlogClient {
 
 	@Override
 	public Log getLog(Long logId) throws OlogException {
-		// TODO Auto-generated method stub
-		return null;
+		return findLogById(logId);
 	}
 
 	@Override
