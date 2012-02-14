@@ -459,6 +459,7 @@ public class SetDeleteIT {
 				logIds.add(log.getId());
 			}
 			client.set(testLogBook, logIds);
+			queryResult.clear();
 			queryResult = client.findLogs(map);
 			assertTrue("failed to set a logbook onto a log, expected "
 					+ setLogs1.size() + " found " + queryResult.size(),
