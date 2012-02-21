@@ -1,20 +1,19 @@
    ----
    Overview
    ----
-   Kunal Shroff
+   Eric Berryman
    ----
 
-ChannelFinderAPI Library Overview
+OlogAPI Library Overview
 
-  ChannelFinder is a directory server, implemented as a REST style web service.
-Its intended use is within control systems, namely the EPICS Control system, for which it has been written.
+  Olog is a directory server, implemented as a REST style web service.
+Its intended use is as an electronic logbook for accelerator operations
 
 * Motivation and Objectives
   
-  The ChannelFinderAPI library is a pure java library to provide simple mechanism to access the channelfinder
-directory service.
+  The OlogAPI library is a pure java library to provide simple mechanism to access the Olog directory service.
   
 * Examples
 
- The unit test serve as an examples resource on how to create, update, add, delete channels, properties and tags.
+ The unit test serve as an examples resource on how to create, update, add, delete logs, properties and tags.
 
