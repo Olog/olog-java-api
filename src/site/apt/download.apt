@@ -1,7 +1,7 @@
    ----
    Download
    ----
-   Ralph Lange
+   Eric Berryman
    ----
 
 Download
@@ -9,11 +9,10 @@ Download
   Released versions:
   
 *----------------+----------------------+
-| Version 1.1.0  |  {{{http://downloads.sourceforge.net/channelfinder/ChannelFinderAPI/ChannelFinderAPI-1.1.0-rc1.jar}Download v1.1.0-rc1}} |                
+| Version 2.1.0  |  {{{http://downloads.sourceforge.net/olog/olog-java-api/OlogAPI-2.1.0-rc1.jar}Download v2.1.0}} |                
 *----------------+----------------------+
-| Version 1.1.0  |  {{{http://downloads.sourceforge.net/channelfinder/ChannelFinderAPI/ChannelFinderAPI-1.0.0-rc1.jar}Download v1.0.0-rc1}} |
-*----------------+----------------------+
+
 
   Latest unreleased version:
 
-  {{{https://irmis-dev.bnl.gov/hudson/job/ChannelFinderAPIc%20-%20Build/lastSuccessfulBuild/artifact/target/}Latest development build}}
+  {{{https://irmis-dev.bnl.gov/jenkins/view/Olog/job/olog-java-api%20Build/lastSuccessfulBuild/artifact/target/OlogAPI-2.1.0.jar}Latest development build}}
