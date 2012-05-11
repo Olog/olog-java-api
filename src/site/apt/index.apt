@@ -6,12 +6,12 @@
 
 OlogAPI Library Overview
 
-  Olog is a directory server, implemented as a REST style web service.
+  Olog is implemented as a REST style web service.
 Its intended use is as an electronic logbook for accelerator operations
 
 * Motivation and Objectives
   
-  The OlogAPI library is a pure java library to provide simple mechanism to access the Olog directory service.
+  The OlogAPI library is a pure java library to provide simple mechanism to access the Olog service.
   
 * Examples
 
