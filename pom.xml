@@ -20,25 +20,6 @@
             <name>Maven Repository Switchboard</name>
             <url>http://repo1.maven.org/maven2</url>
         </repository>
-        <repository>
-            <id>sardine-google-svn-repo</id>
-            <snapshots> 
-                <enabled>true</enabled> 
-            </snapshots>
-            <name>Sardine maven repo at Google Code</name>
-            <url>http://sardine.googlecode.com/svn/maven/</url>
-        </repository>
-        <repository>
-            <id>epics</id>
-            <name>EPICS Repository</name>
-            <url>http://epics.sourceforge.net/maven2/</url>
-            <releases>
-                <enabled>true</enabled>
-            </releases>
-            <snapshots>
-                <enabled>true</enabled>
-            </snapshots>
-        </repository>
     </repositories>
     <dependencies>
         <dependency>
@@ -50,12 +31,14 @@
         <dependency>
             <groupId>com.sun.jersey</groupId>
             <artifactId>jersey-client</artifactId>
-            <version>1.1.5.1</version>
+            <version>1.8</version>
+            <type>jar</type>
         </dependency>
         <dependency>
-            <groupId>org.apache.jackrabbit</groupId>
-            <artifactId>jackrabbit-webdav</artifactId>
-            <version>2.2.7</version>
+            <groupId>com.sun.jersey</groupId>
+            <artifactId>jersey-core</artifactId>
+            <version>1.8</version>
+            <type>jar</type>
         </dependency>
         <dependency>
             <groupId>org.slf4j</groupId>
@@ -66,12 +49,13 @@
         <dependency>
             <groupId>com.sun.jersey.contribs</groupId>
             <artifactId>jersey-apache-client</artifactId>
-            <version>1.1.5.1</version>
+            <version>1.8</version>
         </dependency>
         <dependency>
-            <groupId>net.coobird.thumbnailator</groupId>
-            <artifactId>thumbnailator</artifactId>
-            <version>0.3.10</version>
+            <groupId>com.sun.jersey.contribs</groupId>
+            <artifactId>jersey-multipart</artifactId>
+            <version>1.8</version>
+            <type>jar</type>
         </dependency>
     </dependencies>
     <description>An Olog Client library for java.</description>

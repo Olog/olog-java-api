@@ -16,7 +16,6 @@ import java.util.Collection;
 import java.util.Hashtable;
 import java.util.Map;
 
-import org.apache.jackrabbit.webdav.DavException;
 import org.junit.After;
 import org.junit.AfterClass;
 import org.junit.Before;
@@ -304,7 +303,7 @@ public class SetDeleteIT {
 				fwrite.close();
 			}
 			client.add(f, testLog.getId());
-			Collection<String> attachments = client.getAttachments(testLog
+			Collection<Attachment> attachments = client.listAttachments(testLog
 					.getId());
 			assertTrue("failed to add an attachment, expected 1 found "
 					+ attachments.size(), attachments.size() == 1);
@@ -323,7 +322,7 @@ public class SetDeleteIT {
 	}
 
 	@Test
-	public void attachImageFileToLogId() throws IOException, DavException {
+	public void attachImageFileToLogId() throws IOException {
 		Log testLog = null;
 		File f = null;
 		try {
@@ -333,7 +332,7 @@ public class SetDeleteIT {
 					.appendDescription("test log").level("Info")
 					.appendToLogbook(defaultLogBook));
 			client.add(f, testLog.getId());
-			Collection<String> attachments = client.getAttachments(testLog
+			Collection<Attachment> attachments = client.listAttachments(testLog
 					.getId());
 			assertTrue("failed to add attachment images, expected 1 found "
 					+ attachments.size(), attachments.size() == 1);
