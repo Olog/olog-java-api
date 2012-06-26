@@ -248,6 +248,7 @@ public class OlogClientImpl implements OlogClient {
 		}
 		client.addFilter(new RawLoggingFilter(Logger
 				.getLogger(OlogClientImpl.class.getName())));
+		client.setFollowRedirects(true);
 		service = client.resource(UriBuilder.fromUri(ologURI).build());
 	}
 
