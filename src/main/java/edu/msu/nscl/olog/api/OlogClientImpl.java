@@ -36,6 +36,7 @@ import com.sun.jersey.api.client.filter.HTTPBasicAuthFilter;
 import com.sun.jersey.client.urlconnection.HTTPSProperties;
 import com.sun.jersey.core.util.MultivaluedMapImpl;
 import com.sun.jersey.multipart.FormDataMultiPart;
+import com.sun.jersey.multipart.file.FileDataBodyPart;
 
 /**
  * 
@@ -746,9 +747,10 @@ public class OlogClientImpl implements OlogClient {
 
 	@Override
 	public Attachment add(File local, Long logId) throws OlogException {
-            FormDataMultiPart form = new FormDataMultiPart().field("file", local, MediaType.MULTIPART_FORM_DATA_TYPE);         
+            FormDataMultiPart form = new FormDataMultiPart();
+            form.bodyPart(new FileDataBodyPart("file", local));
             XmlAttachment xmlAttachment = service.path("attachments").path(logId.toString()).type(MediaType.MULTIPART_FORM_DATA)
-               .accept(MediaType.TEXT_PLAIN)
+               .accept(MediaType.APPLICATION_XML)
                .post(XmlAttachment.class,form);
             
             return new Attachment(xmlAttachment);
