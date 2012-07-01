@@ -7,7 +7,7 @@
 OlogAPI Library Overview
 
   Olog is implemented as a REST style web service.
-Its intended use is as an electronic logbook for accelerator operations
+Its intended use is as an electronic logbook for accelerator operations.
 
 * Motivation and Objectives
   
