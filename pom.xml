@@ -59,10 +59,10 @@
         </dependency>
     </dependencies>
     <description>An Olog Client library for java.</description>
-    <url>http://www.nscl.msu.edu</url>
+    <url>http://olog.sourceforge.net/ologAPI/</url>
     <scm>
-        <connection>scm:hg:https://bitbucket.org/berryma4/olog</connection>
-        <url>http://bitbucket.org/berryma4/olog</url>
+        <connection>http://olog.hg.sourceforge.net/hgroot/olog/olog-java-api</connection>
+        <url>http://olog.hg.sourceforge.net/hgweb/olog/olog-java-api/</url>
     </scm>
     <build>
         <extensions>
@@ -151,4 +151,8 @@
             <url>scp://shell.sourceforge.net/home/project-web/epics/htdocs/maven2</url>
         </repository>
     </distributionManagement>
+    <ciManagement>
+    	<system>Jenkins</system>
+    	<url>https://irmis-dev.nsls2.bnl.gov/jenkins/view/Olog/job/olog-java-api%20Build/</url>
+    </ciManagement>
 </project>
