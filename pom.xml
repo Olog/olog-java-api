@@ -61,7 +61,7 @@
     <description>An Olog Client library for java.</description>
     <url>http://olog.sourceforge.net/ologAPI/</url>
     <scm>
-        <connection>http://olog.hg.sourceforge.net/hgroot/olog/olog-java-api</connection>
+        <connection>scm:hg:http://olog.hg.sourceforge.net/hgroot/olog/olog-java-api</connection>
         <url>http://olog.hg.sourceforge.net/hgweb/olog/olog-java-api/</url>
     </scm>
     <build>
