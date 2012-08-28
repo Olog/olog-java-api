@@ -9,8 +9,12 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 import java.io.File;
+import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Hashtable;
@@ -336,6 +340,26 @@ public class SetDeleteIT {
 					.getId());
 			assertTrue("failed to add attachment images, expected 1 found "
 					+ attachments.size(), attachments.size() == 1);
+			// TODO add check on returned files
+			for (Attachment attachment : attachments) {
+				File file = new File("return_"+attachment.getFileName());
+				try {
+					InputStream ip = client.getAttachment(testLog.getId(), attachment);
+					OutputStream out = new FileOutputStream(file);
+					// Transfer bytes from in to out
+					byte[] buf = new byte[1024];
+					int len;
+					while ((len = ip.read(buf)) > 0) {
+						out.write(buf, 0, len);
+					}
+					ip.close();
+					out.close();
+				} catch (MalformedURLException e) {
+					// TODO Auto-generated catch block
+				} catch (IOException e) {
+					// TODO Auto-generated catch block
+				}
+			}
 		} finally {
 			if (testLog != null) {
 				client.delete("the_homercar.jpg", testLog.getId());
