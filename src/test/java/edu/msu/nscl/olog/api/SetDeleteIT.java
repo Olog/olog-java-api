@@ -150,7 +150,7 @@ public class SetDeleteIT {
 			fail(e.getCause().toString());
 		} finally {
 			// delete a tag
-			client.deleteLogbook(tag.build().getName());
+			client.deleteTag(tag.build().getName());
 			assertFalse("failed to clean the testTag", client.listTags()
 					.contains(tag.build()));
 		}
@@ -166,8 +166,7 @@ public class SetDeleteIT {
 			Property setProperty = client.set(property);
 			assertTrue("failed to set the testProperty, the return was null",
 					setProperty != null);
-			assertTrue(
-					"failed to set testProperty, setProperty not equal to sent property",
+			assertTrue("failed to set testProperty, setProperty not equal to sent property",
 					setProperty.equals(property.build()));
 			assertTrue("failed to set testProperty", client.listProperties()
 					.contains(property.build()));
@@ -175,9 +174,8 @@ public class SetDeleteIT {
 			fail(e.getCause().toString());
 		} finally {
 			client.deleteProperty(property.build().getName());
-			Collection<Property> test = client.listProperties();
-			assertFalse("failed to clean the testProperty", client
-					.listProperties().contains(property.build()));
+			Collection<Property> props = client.listProperties();
+			assertFalse("failed to clean the testProperty", props.contains(property.build()));
 		}
 	}
 
@@ -352,7 +350,7 @@ public class SetDeleteIT {
 		PropertyBuilder testProp = property("test Property").attribute(
 				"attributeName", "attributeValue");
 		LogBuilder log = log().description("testLog")
-				.appendDescription("test Log").level("info")
+				.appendDescription("test Log").level("Info")
 				.appendToLogbook(defaultLogBook).appendTag(defaultTag)
 				.property(testProp);
 		Property setProperty = null;
@@ -562,8 +560,7 @@ public class SetDeleteIT {
 			log2 = client.set(defaultLog2.appendToLogbook(testLogbook));
 			Collection<Log> queryResult = client.findLogsByLogbook(testLogbook
 					.build().getName());
-			assertTrue(
-					"Failed to attach testLogbook to defaultLog1 and defaultLog2",
+			assertTrue("Failed to attach testLogbook to defaultLog1 and defaultLog2",
 					queryResult.contains(log1) && queryResult.contains(log2));
 			client.delete(testLogbook, log1.getId());
 			queryResult = client.findLogsByLogbook(testLogbook.build()

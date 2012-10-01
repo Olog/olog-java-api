@@ -213,6 +213,11 @@ public class QueryIT {
 		// Search for a logs with tag 'Tag*'
 		map.add("tag", "Tag*");
 		queryResult = client.findLogs(map);
+		assertTrue(queryResult.size() == 4);
+                // Search for a logs with specific tag 'Tag*'
+                map.clear();
+		map.add("tag", "Tag\\*");
+		queryResult = client.findLogs(map);
 		assertTrue(queryResult.size() == 1);
 		// query for logs with anyone of a group of tags
 		map.clear();
@@ -273,15 +278,15 @@ public class QueryIT {
 				initialLogCount = client.listLogs().size();
 				this.wait(1000L);
 				client.set(log().description("Test log1 for time")
-						.appendDescription("test log").level("info")
+						.appendDescription("test log").level("Info")
 						.appendToLogbook(book));
 				this.wait(1000L);
 				client.set(log().description("Test log2 for time")
-						.appendDescription("test log").level("info")
+						.appendDescription("test log").level("Info")
 						.appendToLogbook(book));
 				this.wait(1000L);
 				client.set(log().description("Test log3 for time")
-						.appendDescription("test log").level("info")
+						.appendDescription("test log").level("Info")
 						.appendToLogbook(book));
 				this.wait(1000L);
 				// XXX

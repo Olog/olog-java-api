@@ -172,7 +172,7 @@ public class ErrorIT {
 	}
 
 	/**
-	 * Delete the last logbook assocaited with a log entry
+	 * Delete the last logbook associated with a log entry
 	 */
 	@Test(expected = OlogException.class)
 	public void deleteOnlyLogbookFromLog() {
