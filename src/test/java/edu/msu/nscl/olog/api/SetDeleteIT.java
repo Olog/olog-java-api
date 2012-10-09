@@ -170,7 +170,8 @@ public class SetDeleteIT {
 			Property setProperty = client.set(property);
 			assertTrue("failed to set the testProperty, the return was null",
 					setProperty != null);
-			assertTrue("failed to set testProperty, setProperty not equal to sent property",
+			assertTrue(
+					"failed to set testProperty, setProperty not equal to sent property",
 					setProperty.equals(property.build()));
 			assertTrue("failed to set testProperty", client.listProperties()
 					.contains(property.build()));
@@ -179,7 +180,8 @@ public class SetDeleteIT {
 		} finally {
 			client.deleteProperty(property.build().getName());
 			Collection<Property> props = client.listProperties();
-			assertFalse("failed to clean the testProperty", props.contains(property.build()));
+			assertFalse("failed to clean the testProperty",
+					props.contains(property.build()));
 		}
 	}
 
@@ -340,9 +342,10 @@ public class SetDeleteIT {
 					+ attachments.size(), attachments.size() == 1);
 			// TODO add check on returned files
 			for (Attachment attachment : attachments) {
-				File file = new File("return_"+attachment.getFileName());
+				File file = new File("return_" + attachment.getFileName());
 				try {
-					InputStream ip = client.getAttachment(testLog.getId(), attachment);
+					InputStream ip = client.getAttachment(testLog.getId(),
+							attachment);
 					OutputStream out = new FileOutputStream(file);
 					// Transfer bytes from in to out
 					byte[] buf = new byte[1024];
@@ -372,22 +375,27 @@ public class SetDeleteIT {
 	@Test
 	public void setLogWithProperty() {
 		PropertyBuilder testProp = property("test Property").attribute(
-				"attributeName", "attributeValue");
+				"attributeName");
 		LogBuilder log = log().description("testLog")
 				.appendDescription("test Log").level("Info")
-				.appendToLogbook(defaultLogBook).appendTag(defaultTag)
-				.property(testProp);
+				.appendToLogbook(defaultLogBook).appendTag(defaultTag);
 		Property setProperty = null;
 		Log setLog = null;
 		try {
 			setProperty = client.set(testProp);
-			setLog = client.set(log);
+			setLog = client.set(log.appendProperty(
+					property("test Property").attribute("attributeName",
+							"value1")).appendProperty(
+					property("test Property").attribute("attributeName",
+							"value2")));
 			assertTrue("failed to set test log", setLog != null);
+			Collection<Property> properties = client
+					.findLogById(setLog.getId()).getProperty("test Property");
+			assertTrue("check if properties correctly attached",
+					properties.size() == 2);
 			assertTrue(
-					"check if property correctly attached",
-					client.findLogById(setLog.getId())
-							.getProperty(testProp.build().getName())
-							.equals(testProp.build()));
+					"Check if the multi value properties are corectly attached.",
+					properties.containsAll(setLog.getProperty("test Property")));
 		} catch (Exception e) {
 			fail(e.getMessage());
 		} finally {
@@ -584,7 +592,8 @@ public class SetDeleteIT {
 			log2 = client.set(defaultLog2.appendToLogbook(testLogbook));
 			Collection<Log> queryResult = client.findLogsByLogbook(testLogbook
 					.build().getName());
-			assertTrue("Failed to attach testLogbook to defaultLog1 and defaultLog2",
+			assertTrue(
+					"Failed to attach testLogbook to defaultLog1 and defaultLog2",
 					queryResult.contains(log1) && queryResult.contains(log2));
 			client.delete(testLogbook, log1.getId());
 			queryResult = client.findLogsByLogbook(testLogbook.build()
