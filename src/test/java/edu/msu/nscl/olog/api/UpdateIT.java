@@ -308,7 +308,7 @@ public class UpdateIT {
 	@Test
 	public void updateProperty2log() {
 		PropertyBuilder testProperty = property("testProperty1").attribute(
-				"testAttribute");
+				"testAttribute").attribute("testAttribute2");
 		Log testLog1 = null;
 		Log testLog2 = null;
 		try {
@@ -329,6 +329,7 @@ public class UpdateIT {
 							"testAttribute", "*").size() == 0);
 			// add testLog1 to testProperty
 			testProperty.attribute("testAttribute", "testAttributeValue");
+                        testProperty.attribute("testAttribute2", "testAttributeValue2");
 			client.update(testProperty, testLog1.getId());
 			// check if the log was updated with the testProperty
 			// TODO add check
@@ -336,6 +337,9 @@ public class UpdateIT {
 					testProperty.build().getName(), "testAttribute", "*");
 			assertTrue("failed to update testLog1 with testProperty",
 					checkEqualityWithoutID(queryResult, testLog1));
+                        //check if the log has both attributes in the property
+                        assertTrue("testProperty does not has both attributes",
+					queryResult.iterator().next().getProperty("testProperty1").iterator().next().getAttributes().size()== 2);
 			// add testLog2 to testProperty
 			client.update(testProperty, testLog2.getId());
 			// check if the testLog2 was updated with the testProperty
