@@ -375,7 +375,7 @@ public class SetDeleteIT {
 	@Test
 	public void setLogWithProperty() {
 		PropertyBuilder testProp = property("test Property").attribute(
-				"attributeName");
+				"attributeName").attribute("attributeName2");
 		LogBuilder log = log().description("testLog")
 				.appendDescription("test Log").level("Info")
 				.appendToLogbook(defaultLogBook).appendTag(defaultTag);
@@ -385,14 +385,13 @@ public class SetDeleteIT {
 			setProperty = client.set(testProp);
 			setLog = client.set(log.appendProperty(
 					property("test Property").attribute("attributeName",
-							"value1")).appendProperty(
-					property("test Property").attribute("attributeName",
-							"value2")));
+							"value1").attribute("attributeName2", 
+                                                        "value2")));
 			assertTrue("failed to set test log", setLog != null);
 			Collection<Property> properties = client
 					.findLogById(setLog.getId()).getProperty("test Property");
 			assertTrue("check if properties correctly attached",
-					properties.size() == 2);
+					properties.iterator().next().getAttributes().size() == 2);
 			assertTrue(
 					"Check if the multi value properties are corectly attached.",
 					properties.containsAll(setLog.getProperty("test Property")));

@@ -431,7 +431,7 @@ public class QueryIT {
             f = new File("docxTest.docx");
             client.add(f, distinctName.getId());
             //wait for index
-            Thread.sleep(1000);
+            Thread.sleep(2000);
             assertTrue("Failed to docx file query using findbysearch method ", client
                     .findLogsBySearch("asdfghjkl").size() == 1);
         } catch (Exception e) {
