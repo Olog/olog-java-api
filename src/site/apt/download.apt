@@ -23,7 +23,10 @@ Download
 *----------------+----------------------+
 | Version 2.2.2  |  {{{http://downloads.sourceforge.net/olog/olog-java-api/OlogAPI-2.2.2.jar}Download v2.2.2}} |                
 *----------------+----------------------+
+*----------------+----------------------+
+| Version 2.2.3  |  {{{http://downloads.sourceforge.net/olog/olog-java-api/OlogAPI-2.2.3.jar}Download v2.2.3}} |                
+*----------------+----------------------+
 
   Latest unreleased version:
 
-  {{{https://irmis-dev.bnl.gov/jenkins/view/Olog/job/olog-java-api%20Build/lastSuccessfulBuild/artifact/target/OlogAPI-2.2.2-SNAPSHOT.jar}Latest development build}}
+  {{{https://openepics.ci.cloudbees.com/view/Olog/job/OlogIntegrationTests/lastSuccessfulBuild/artifact/modules/olog-java-api/target/OlogAPI-2.2.4-SNAPSHOT.jar}Latest development build}}
