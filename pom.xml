@@ -15,9 +15,9 @@
     <description>An Olog Client library for java.</description>
     <url>http://olog.github.com/</url>
     <scm>
-        <connection>scm:git:https://github.com/Olog/olog-java-api.git</connection>
-        <developerConnection>scm:git:https://github.com/Olog/olog-java-api.git</developerConnection>
-        <url>https://github.com/Olog/olog-java-api</url>
+        <connection>scm:git:ssh://git@github.com/Olog/olog-java-api.git</connection>
+        <developerConnection>scm:git:ssh://git@github.com/Olog/olog-java-api.git</developerConnection>
+        <url>ssh://git@github.com/Olog/olog-java-api.git</url>
     </scm>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
