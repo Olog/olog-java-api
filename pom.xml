@@ -4,12 +4,12 @@
         <artifactId>olog</artifactId>
         <groupId>edu.msu.nscl.olog</groupId>
         <relativePath>../../</relativePath>
-        <version>2.2.5</version>
+        <version>2.2.6-SNAPSHOT</version>
     </parent>
     <groupId>edu.msu.nscl.olog</groupId>
     <artifactId>OlogAPI</artifactId>
     <packaging>jar</packaging>
-    <version>2.2.5</version>
+    <version>2.2.6-SNAPSHOT</version>
     <name>Olog API</name>
     <description>An Olog Client library for java.</description>
     <url>http://olog.github.com/</url>
@@ -17,7 +17,7 @@
         <connection>scm:git:ssh://git@github.com/${github.projectOwner}/${github.projectName}.git</connection>
         <developerConnection>scm:git:github</developerConnection>
         <url>ssh://git@github.com/${github.projectOwner}/${github.projectName}.git</url>
-      <tag>olog-2.2.5</tag>
+      <tag>HEAD</tag>
   </scm>
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
