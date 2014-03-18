@@ -1,6 +1,7 @@
 package edu.msu.nscl.olog.api;
 
 import org.junit.BeforeClass;
+import org.junit.Ignore;
 import org.junit.Test;
 import org.xml.sax.SAXException;
 
@@ -38,6 +39,7 @@ public class RegresionTest {
         Map<String,String> map = new HashMap<String, String>();
         map.put("start", "1332892800");
         map.put("end", "1332979200");
+        map.put("page", "1");
         map.put("limit", "10");
         Collection<Log> logs = client.findLogs(map);
         JAXBContext jaxbCtx = JAXBContext.newInstance(XmlLogs.class);
@@ -60,6 +62,7 @@ public class RegresionTest {
         Map<String,String> map = new HashMap<String, String>();
         map.put("id", "63034");
         map.put("limit", "20");
+        map.put("page", "1");
         Collection<Log> logs = client.findLogs(map);
         JAXBContext jaxbCtx = JAXBContext.newInstance(XmlLogs.class);
         Marshaller marshaller = jaxbCtx.createMarshaller();
@@ -81,6 +84,7 @@ public class RegresionTest {
         Map<String,String> map = new HashMap<String, String>();
         map.put("id", "63034");
         map.put("limit", "20");
+        map.put("page", "1");
         map.put("history","true");
         Collection<Log> logs = client.findLogs(map);
         JAXBContext jaxbCtx = JAXBContext.newInstance(XmlLogs.class);
