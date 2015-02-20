@@ -19,6 +19,8 @@ public class LogBuilder {
 	private String level;
 	private Date createdDate;
 	private Date modifiedDate;
+        private Date eventStart;
+        private Date eventEnd;
 	private int version;
 	private Set<TagBuilder> tags = new HashSet<TagBuilder>();
 	private Set<LogbookBuilder> logbooks = new HashSet<LogbookBuilder>();
@@ -33,6 +35,8 @@ public class LogBuilder {
 		logBuilder.level = log.getLevel();
 		logBuilder.createdDate = log.getCreatedDate();
 		logBuilder.modifiedDate = log.getModifiedDate();
+                logBuilder.eventStart = log.getEventStart();
+                logBuilder.eventEnd = log.getEventEnd();
 		logBuilder.version = log.getVersion();
 		for (Tag tag : log.getTags()) {
 			logBuilder.tags.add(TagBuilder.tag(tag));
@@ -118,6 +122,11 @@ public class LogBuilder {
 		this.logbooks.add(logbook);
 		return this;
 	}
+        
+        public LogBuilder onDate(Date date){
+                this.eventStart = date;
+                return this;
+        }
 
 	// @deprecated not really deprecated, but javadoc doesn't have unsupported
 	@Deprecated
@@ -139,6 +148,8 @@ public class LogBuilder {
 		xmlLog.setLevel(level);
 		xmlLog.setCreatedDate(createdDate);
 		xmlLog.setModifiedDate(modifiedDate);
+                xmlLog.setEventStart(eventStart);
+                xmlLog.setEventEnd(eventEnd);
 		xmlLog.setVersion(version);
 		for (TagBuilder tag : tags) {
 			xmlLog.addXmlTag(tag.toXml());

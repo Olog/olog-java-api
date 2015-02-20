@@ -27,6 +27,8 @@ public class Log implements Comparable<Log> {
 	private final String level;
 	private final Date createdDate;
 	private final Date modifiedDate;
+        private final Date eventStart;
+        private final Date eventEnd;
 	private final int version;
 
 	private final Map<String, Tag> tags;
@@ -41,6 +43,8 @@ public class Log implements Comparable<Log> {
 		this.level = log.getLevel();
 		this.createdDate = log.getCreatedDate();
 		this.modifiedDate = log.getModifiedDate();
+                this.eventStart = log.getEventStart();
+                this.eventEnd = log.getEventEnd();
 		this.version = log.getVersion();
 		Map<String, Tag> newTags = new HashMap<String, Tag>();
 		for (XmlTag tag : log.getXmlTags()) {
@@ -88,6 +92,14 @@ public class Log implements Comparable<Log> {
 
 	public Date getModifiedDate() {
 		return modifiedDate;
+	}
+        
+        public Date getEventStart() {
+		return eventStart;
+	}
+        
+        public Date getEventEnd() {
+		return eventEnd;
 	}
 
 	public int getVersion() {

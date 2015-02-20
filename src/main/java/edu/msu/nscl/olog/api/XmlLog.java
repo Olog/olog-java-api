@@ -34,6 +34,8 @@ public class XmlLog {
     private Long tableId;
     private Date createdDate;
     private Date modifiedDate;
+    private Date eventStart;
+    private Date eventEnd;
 //    private String subject;
     private String description;
     private Collection<XmlProperty> properties = new ArrayList<XmlProperty>();
@@ -199,6 +201,44 @@ public class XmlLog {
         this.modifiedDate = modifiedDate;
     }
 
+    /**
+     * Getter for log event start date.
+     *
+     * @return eventStart
+     */
+    @XmlAttribute
+    public Date getEventStart() {
+        return eventStart;
+    }
+
+    /**
+     * Setter for log event start date.
+     *
+     * @param eventStart
+     */
+    public void setEventStart(Date eventStart) {
+        this.eventStart = eventStart;
+    }
+    
+    /**
+     * Getter for log event end date.
+     *
+     * @return eventEnd
+     */
+    @XmlAttribute
+    public Date getEventEnd() {
+        return eventEnd;
+    }
+    
+    /**
+     * Setter for log event end date.
+     *
+     * @param eventEnd
+     */
+    public void setEventEnd(Date eventEnd) {
+        this.eventEnd = eventEnd;
+    }
+    
     /**
      * Getter for log source IP.
      *
